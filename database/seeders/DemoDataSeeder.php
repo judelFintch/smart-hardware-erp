@@ -30,18 +30,6 @@ class DemoDataSeeder extends Seeder
             Customer::firstOrCreate(['name' => $customer['name']], $customer);
         }
 
-        $units = [
-            ['code' => 'pcs', 'name' => 'Pièce', 'type' => 'piece'],
-            ['code' => 'kg', 'name' => 'Kilogramme', 'type' => 'weight'],
-            ['code' => 'g', 'name' => 'Gramme', 'type' => 'weight'],
-            ['code' => 'l', 'name' => 'Litre', 'type' => 'volume'],
-            ['code' => 'm', 'name' => 'Mètre', 'type' => 'other'],
-        ];
-
-        foreach ($units as $unit) {
-            Unit::firstOrCreate(['code' => $unit['code']], $unit);
-        }
-
         $pcs = Unit::where('code', 'pcs')->first();
         $kg = Unit::where('code', 'kg')->first();
         $l = Unit::where('code', 'l')->first();
