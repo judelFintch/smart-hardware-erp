@@ -22,6 +22,8 @@ use App\Livewire\Suppliers\Form as SuppliersForm;
 use App\Livewire\Suppliers\Index as SuppliersIndex;
 use App\Livewire\Units\Form as UnitsForm;
 use App\Livewire\Units\Index as UnitsIndex;
+use App\Livewire\Users\Form as UsersForm;
+use App\Livewire\Users\Index as UsersIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -58,6 +60,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('units', UnitsIndex::class)->middleware('role:owner,manager')->name('units.index');
     Route::get('units/create', UnitsForm::class)->middleware('role:owner,manager')->name('units.create');
     Route::get('units/{unit}/edit', UnitsForm::class)->middleware('role:owner,manager')->name('units.edit');
+
+    Route::get('users', UsersIndex::class)->middleware('role:owner,manager')->name('users.index');
+    Route::get('users/create', UsersForm::class)->middleware('role:owner,manager')->name('users.create');
+    Route::get('users/{user}/edit', UsersForm::class)->middleware('role:owner,manager')->name('users.edit');
 
     Route::get('sales', SalesIndex::class)->name('sales.index');
     Route::get('sales/create', SalesCreate::class)->name('sales.create');
