@@ -1,16 +1,20 @@
-<div>
-    <div class="flex items-center justify-between mb-4">
-        <h1 class="text-2xl font-semibold">Articles</h1>
-        <div class="flex gap-2 items-center">
-            <form wire:submit.prevent="importCsv" class="flex gap-2 items-center">
-                <input type="file" wire:model="importFile" class="border p-2">
-                <button type="submit" class="px-3 py-2 bg-gray-700 text-white rounded">Importer CSV</button>
+<div class="space-y-4">
+    <div class="flex flex-wrap items-center justify-between gap-3">
+        <div>
+            <h1 class="text-2xl font-semibold">Articles</h1>
+            <p class="text-sm text-slate-500">Catalogue des articles et prix (unités gérées).</p>
+        </div>
+        <div class="flex flex-wrap gap-2 items-center">
+            <form wire:submit.prevent="importCsv" class="flex flex-wrap gap-2 items-center">
+                <input type="file" wire:model="importFile" class="input">
+                <button type="submit" class="btn btn-secondary">Importer CSV</button>
             </form>
-            <a href="{{ route('products.create') }}" class="px-3 py-2 bg-blue-600 text-white rounded">Nouveau</a>
+            <a href="{{ route('products.create') }}" class="btn btn-primary">Nouveau</a>
         </div>
     </div>
-    @error('importFile') <span class="text-red-600">{{ $message }}</span> @enderror
-    <table class="w-full bg-white shadow rounded">
+    @error('importFile') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+    <div class="card overflow-hidden">
+    <table class="w-full">
         <thead>
             <tr class="text-left border-b">
                 <th class="p-2">SKU</th>
@@ -26,7 +30,7 @@
                 <tr class="border-b">
                     <td class="p-2">{{ $product->sku }}</td>
                     <td class="p-2">{{ $product->name }}</td>
-                    <td class="p-2">{{ $product->unit }}</td>
+                    <td class="p-2">{{ $product->unit?->code ?? '—' }}</td>
                     <td class="p-2">{{ number_format($product->avg_cost_local, 2) }}</td>
                     <td class="p-2">{{ number_format($product->sale_price_local, 2) }}</td>
                     <td class="p-2">
@@ -37,4 +41,5 @@
             @endforeach
         </tbody>
     </table>
+    </div>
 </div>

@@ -32,14 +32,14 @@
         <h2 class="text-lg font-semibold mb-2">Transferts</h2>
         <form wire:submit.prevent="addTransfer" class="space-y-2 mb-4">
             <div class="grid grid-cols-2 gap-2">
-                <input wire:model.defer="amount_foreign" type="number" step="0.01" class="border p-2" placeholder="Montant devise">
-                <input wire:model.defer="amount_local" type="number" step="0.01" class="border p-2" placeholder="Montant local">
+                <input wire:model.defer="amount_foreign" type="number" step="0.01" class="input" placeholder="Montant devise">
+                <input wire:model.defer="amount_local" type="number" step="0.01" class="input" placeholder="Montant local">
             </div>
             <div class="grid grid-cols-2 gap-2">
-                <input wire:model.defer="paid_at" type="date" class="border p-2">
-                <input wire:model.defer="reference" class="border p-2" placeholder="Référence">
+                <input wire:model.defer="paid_at" type="date" class="input">
+                <input wire:model.defer="reference" class="input" placeholder="Référence">
             </div>
-            <textarea wire:model.defer="notes" class="border p-2 w-full" placeholder="Notes"></textarea>
+            <textarea wire:model.defer="notes" class="input" placeholder="Notes"></textarea>
             <button class="px-3 py-2 bg-blue-600 text-white rounded" type="submit">Ajouter transfert</button>
         </form>
     @endif
@@ -50,7 +50,7 @@
 
     <h2 class="text-lg font-semibold mt-6 mb-2">Pièces jointes</h2>
     <form wire:submit.prevent="uploadAttachment" class="space-y-2 mb-4">
-        <input type="file" wire:model="attachment" class="border p-2">
+        <input type="file" wire:model="attachment" class="input">
         @error('attachment') <span class="text-red-600">{{ $message }}</span> @enderror
         <button class="px-3 py-2 bg-blue-600 text-white rounded" type="submit">Ajouter pièce</button>
     </form>

@@ -3,6 +3,7 @@
 namespace App\Livewire\Products;
 
 use App\Models\Product;
+use App\Models\Unit;
 use Livewire\Component;
 
 class Form extends Component
@@ -10,7 +11,7 @@ class Form extends Component
     public ?Product $product = null;
     public string $sku = '';
     public string $name = '';
-    public string $unit = 'pcs';
+    public ?int $unit_id = null;
     public string $description = '';
     public float $sale_margin_percent = 0;
     public bool $is_active = true;
@@ -21,7 +22,7 @@ class Form extends Component
             $this->product = $product;
             $this->sku = $product->sku;
             $this->name = $product->name;
-            $this->unit = $product->unit;
+            $this->unit_id = $product->unit_id;
             $this->description = (string) $product->description;
             $this->sale_margin_percent = (float) $product->sale_margin_percent;
             $this->is_active = (bool) $product->is_active;
@@ -33,13 +34,11 @@ class Form extends Component
         $data = $this->validate([
             'sku' => ['required', 'string', 'max:255', 'unique:products,sku,' . ($this->product?->id ?? 'NULL')],
             'name' => ['required', 'string', 'max:255'],
-            'unit' => ['nullable', 'string', 'max:50'],
+            'unit_id' => ['required', 'exists:units,id'],
             'description' => ['nullable', 'string'],
             'sale_margin_percent' => ['nullable', 'numeric', 'min:0'],
             'is_active' => ['boolean'],
         ]);
-
-        $data['unit'] = $data['unit'] ?: 'pcs';
 
         if ($this->product) {
             $salePrice = $this->product->avg_cost_local > 0
@@ -58,8 +57,9 @@ class Form extends Component
     public function render()
     {
         $title = $this->product ? 'Modifier Article' : 'Nouvel Article';
+        $units = Unit::orderBy('name')->get();
 
-        return view('livewire.products.form', compact('title'))
+        return view('livewire.products.form', compact('title', 'units'))
             ->layout('layouts.app');
     }
 }

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Customer;
 use App\Models\Product;
 use App\Models\Supplier;
+use App\Models\Unit;
 use Illuminate\Database\Seeder;
 
 class DemoDataSeeder extends Seeder
@@ -29,10 +30,26 @@ class DemoDataSeeder extends Seeder
             Customer::firstOrCreate(['name' => $customer['name']], $customer);
         }
 
+        $units = [
+            ['code' => 'pcs', 'name' => 'Pièce', 'type' => 'piece'],
+            ['code' => 'kg', 'name' => 'Kilogramme', 'type' => 'weight'],
+            ['code' => 'g', 'name' => 'Gramme', 'type' => 'weight'],
+            ['code' => 'l', 'name' => 'Litre', 'type' => 'volume'],
+            ['code' => 'm', 'name' => 'Mètre', 'type' => 'other'],
+        ];
+
+        foreach ($units as $unit) {
+            Unit::firstOrCreate(['code' => $unit['code']], $unit);
+        }
+
+        $pcs = Unit::where('code', 'pcs')->first();
+        $kg = Unit::where('code', 'kg')->first();
+        $l = Unit::where('code', 'l')->first();
+
         $products = [
-            ['sku' => 'ART-001', 'name' => 'Marteau', 'unit' => 'pcs', 'sale_margin_percent' => 20],
-            ['sku' => 'ART-002', 'name' => 'Clous 1kg', 'unit' => 'kg', 'sale_margin_percent' => 15],
-            ['sku' => 'ART-003', 'name' => 'Peinture 1L', 'unit' => 'L', 'sale_margin_percent' => 25],
+            ['sku' => 'ART-001', 'name' => 'Marteau', 'unit_id' => $pcs?->id, 'sale_margin_percent' => 20],
+            ['sku' => 'ART-002', 'name' => 'Clous 1kg', 'unit_id' => $kg?->id, 'sale_margin_percent' => 15],
+            ['sku' => 'ART-003', 'name' => 'Peinture 1L', 'unit_id' => $l?->id, 'sale_margin_percent' => 25],
         ];
 
         foreach ($products as $product) {

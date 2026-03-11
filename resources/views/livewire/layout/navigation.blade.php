@@ -30,18 +30,31 @@ new class extends Component
             </div>
 
             <nav class="flex-1 px-4 py-6 space-y-1">
+                <div class="sidebar-title">Vue</div>
                 <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}" wire:navigate>
                     Dashboard
                 </a>
+
+                <div class="sidebar-title">Catalogue</div>
                 <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}" wire:navigate>
                     Articles
                 </a>
+                @if ($isManager)
+                    <a class="nav-link {{ request()->routeIs('stock-locations.*') ? 'active' : '' }}" href="{{ route('stock-locations.index') }}" wire:navigate>
+                        Magasins & Dépôts
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('units.*') ? 'active' : '' }}" href="{{ route('units.index') }}" wire:navigate>
+                        Unités
+                    </a>
+                @endif
                 <a class="nav-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}" href="{{ route('suppliers.index') }}" wire:navigate>
                     Fournisseurs
                 </a>
                 <a class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}" wire:navigate>
                     Clients
                 </a>
+
+                <div class="sidebar-title">Opérations</div>
                 <a class="nav-link {{ request()->routeIs('purchases.*') ? 'active' : '' }}" href="{{ route('purchases.index') }}" wire:navigate>
                     Achats
                 </a>
@@ -58,6 +71,7 @@ new class extends Component
                     Inventaire
                 </a>
                 @if ($isManager)
+                    <div class="sidebar-title">Analyse</div>
                     <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.financial') }}" wire:navigate>
                         Rapports
                     </a>
@@ -96,18 +110,29 @@ new class extends Component
                 <button class="btn btn-secondary" @click="open = false">Fermer</button>
             </div>
             <nav class="px-4 py-4 space-y-1">
+                <div class="sidebar-title">Vue</div>
                 <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}" wire:navigate>Dashboard</a>
+
+                <div class="sidebar-title">Catalogue</div>
                 <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}" wire:navigate>Articles</a>
+                @if ($isManager)
+                    <a class="nav-link {{ request()->routeIs('stock-locations.*') ? 'active' : '' }}" href="{{ route('stock-locations.index') }}" wire:navigate>Magasins & Dépôts</a>
+                    <a class="nav-link {{ request()->routeIs('units.*') ? 'active' : '' }}" href="{{ route('units.index') }}" wire:navigate>Unités</a>
+                @endif
                 <a class="nav-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}" href="{{ route('suppliers.index') }}" wire:navigate>Fournisseurs</a>
                 <a class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}" wire:navigate>Clients</a>
+
+                <div class="sidebar-title">Opérations</div>
                 <a class="nav-link {{ request()->routeIs('purchases.*') ? 'active' : '' }}" href="{{ route('purchases.index') }}" wire:navigate>Achats</a>
                 <a class="nav-link {{ request()->routeIs('stock-transfers.*') ? 'active' : '' }}" href="{{ route('stock-transfers.create') }}" wire:navigate>Transferts</a>
                 <a class="nav-link {{ request()->routeIs('sales.*') ? 'active' : '' }}" href="{{ route('sales.index') }}" wire:navigate>Ventes</a>
                 <a class="nav-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}" href="{{ route('expenses.index') }}" wire:navigate>Dépenses</a>
                 <a class="nav-link {{ request()->routeIs('inventory-counts.*') ? 'active' : '' }}" href="{{ route('inventory-counts.create') }}" wire:navigate>Inventaire</a>
                 @if ($isManager)
+                    <div class="sidebar-title">Analyse</div>
                     <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.financial') }}" wire:navigate>Rapports</a>
                 @endif
+                <div class="sidebar-title">Compte</div>
                 <a class="nav-link" href="{{ route('profile') }}" wire:navigate>Profil</a>
             </nav>
         </div>

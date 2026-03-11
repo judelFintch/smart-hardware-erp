@@ -35,12 +35,12 @@
     <h2 class="text-lg font-semibold mb-2">Retour / Échange</h2>
     <form wire:submit.prevent="returnItem" class="space-y-2 mb-6">
         <div class="grid grid-cols-2 gap-2">
-            <select wire:model.defer="return_product_id" class="border p-2" required>
+            <select wire:model.defer="return_product_id" class="input" required>
                 @foreach ($sale->items->where('quantity', '>', 0) as $item)
                     <option value="{{ $item->product_id }}">{{ $item->product->name }}</option>
                 @endforeach
             </select>
-            <input wire:model.defer="return_quantity" type="number" step="0.001" class="border p-2" placeholder="Quantité retournée" required>
+            <input wire:model.defer="return_quantity" type="number" step="0.001" class="input" placeholder="Quantité retournée" required>
         </div>
         <button class="px-3 py-2 bg-orange-600 text-white rounded" type="submit">Enregistrer retour</button>
     </form>
@@ -49,14 +49,14 @@
         <h2 class="text-lg font-semibold mb-2">Paiements</h2>
         <form wire:submit.prevent="addPayment" class="space-y-2 mb-4">
             <div class="grid grid-cols-2 gap-2">
-                <input wire:model.defer="payment_amount" type="number" step="0.01" class="border p-2" placeholder="Montant" required>
-                <input wire:model.defer="payment_paid_at" type="date" class="border p-2">
+                <input wire:model.defer="payment_amount" type="number" step="0.01" class="input" placeholder="Montant" required>
+                <input wire:model.defer="payment_paid_at" type="date" class="input">
             </div>
             <div class="grid grid-cols-2 gap-2">
-                <input wire:model.defer="payment_method" class="border p-2" placeholder="Méthode">
-                <input wire:model.defer="payment_reference" class="border p-2" placeholder="Référence">
+                <input wire:model.defer="payment_method" class="input" placeholder="Méthode">
+                <input wire:model.defer="payment_reference" class="input" placeholder="Référence">
             </div>
-            <textarea wire:model.defer="payment_notes" class="border p-2 w-full" placeholder="Notes"></textarea>
+            <textarea wire:model.defer="payment_notes" class="input" placeholder="Notes"></textarea>
             <button class="px-3 py-2 bg-blue-600 text-white rounded" type="submit">Ajouter paiement</button>
         </form>
 

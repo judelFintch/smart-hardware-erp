@@ -27,9 +27,13 @@ class Create extends Component
     public float $transport_fees_local = 0;
     public string $notes = '';
     public array $items = [];
+    public ?int $receive_location_id = null;
 
     public function mount(): void
     {
+        $defaultLocation = StockLocation::where('code', 'depot')->first();
+        $this->receive_location_id = $defaultLocation?->id;
+
         $this->items = [
             ['product_id' => null, 'quantity' => null, 'unit_price' => null],
             ['product_id' => null, 'quantity' => null, 'unit_price' => null],
@@ -67,6 +71,7 @@ class Create extends Component
             'accessory_fees_local' => ['nullable', 'numeric', 'min:0'],
             'transport_fees_local' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
+            'receive_location_id' => ['required_if:status,receptionnee', 'nullable', 'exists:stock_locations,id'],
         ]);
 
         if (count($filteredItems) === 0) {
@@ -137,14 +142,14 @@ class Create extends Component
             $this->allocateCostToItems($purchase, $accessoryFees + $transportFees, $totalQty);
 
             if ($purchase->status === 'receptionnee') {
-                $this->receivePurchase($purchase, $stockService);
+                $this->receivePurchase($purchase, $stockService, $data['receive_location_id'] ?? null);
             }
         });
 
         $this->redirectRoute('purchases.index');
     }
 
-    private function receivePurchase(PurchaseOrder $purchase, StockService $stockService): void
+    private function receivePurchase(PurchaseOrder $purchase, StockService $stockService, ?int $locationId): void
     {
         $alreadyReceived = StockMovement::where('reference_type', PurchaseOrder::class)
             ->where('reference_id', $purchase->id)
@@ -155,7 +160,9 @@ class Create extends Component
             return;
         }
 
-        $depot = StockLocation::where('code', 'depot')->firstOrFail();
+        $destination = $locationId
+            ? StockLocation::findOrFail($locationId)
+            : StockLocation::where('code', 'depot')->firstOrFail();
         $purchase->load('items.product');
 
         foreach ($purchase->items as $item) {
@@ -165,7 +172,7 @@ class Create extends Component
             $stockService->recordMovement([
                 'product_id' => $item->product_id,
                 'from_location_id' => null,
-                'to_location_id' => $depot->id,
+                'to_location_id' => $destination->id,
                 'quantity' => $item->quantity,
                 'unit_cost_local' => $unitCost,
                 'unit_sale_price_local' => $unitSale,
@@ -201,8 +208,9 @@ class Create extends Component
     {
         $suppliers = Supplier::orderBy('name')->get();
         $products = Product::orderBy('name')->get();
+        $locations = StockLocation::orderBy('name')->get();
 
-        return view('livewire.purchases.create', compact('suppliers', 'products'))
+        return view('livewire.purchases.create', compact('suppliers', 'products', 'locations'))
             ->layout('layouts.app');
     }
 }

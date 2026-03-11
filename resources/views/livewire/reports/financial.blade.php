@@ -2,8 +2,8 @@
     <h1 class="text-2xl font-semibold mb-4">Rapport financier</h1>
 
     <form wire:submit.prevent="applyFilter" class="grid grid-cols-3 gap-2 mb-6">
-        <input wire:model.defer="start" type="date" class="border p-2">
-        <input wire:model.defer="end" type="date" class="border p-2">
+        <input wire:model.defer="start" type="date" class="input">
+        <input wire:model.defer="end" type="date" class="input">
         <button class="px-3 py-2 bg-blue-600 text-white rounded" type="submit">Filtrer</button>
     </form>
 

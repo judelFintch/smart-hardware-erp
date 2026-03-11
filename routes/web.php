@@ -15,9 +15,13 @@ use App\Livewire\Reports\Financial as ReportsFinancial;
 use App\Livewire\Sales\Create as SalesCreate;
 use App\Livewire\Sales\Index as SalesIndex;
 use App\Livewire\Sales\Show as SalesShow;
+use App\Livewire\StockLocations\Form as StockLocationsForm;
+use App\Livewire\StockLocations\Index as StockLocationsIndex;
 use App\Livewire\StockTransfers\Create as StockTransfersCreate;
 use App\Livewire\Suppliers\Form as SuppliersForm;
 use App\Livewire\Suppliers\Index as SuppliersIndex;
+use App\Livewire\Units\Form as UnitsForm;
+use App\Livewire\Units\Index as UnitsIndex;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -47,6 +51,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('purchases/{purchaseOrder}', PurchasesShow::class)->name('purchases.show');
 
     Route::get('stock-transfers/create', StockTransfersCreate::class)->name('stock-transfers.create');
+    Route::get('stock-locations', StockLocationsIndex::class)->middleware('role:owner,manager')->name('stock-locations.index');
+    Route::get('stock-locations/create', StockLocationsForm::class)->middleware('role:owner,manager')->name('stock-locations.create');
+    Route::get('stock-locations/{stockLocation}/edit', StockLocationsForm::class)->middleware('role:owner,manager')->name('stock-locations.edit');
+
+    Route::get('units', UnitsIndex::class)->middleware('role:owner,manager')->name('units.index');
+    Route::get('units/create', UnitsForm::class)->middleware('role:owner,manager')->name('units.create');
+    Route::get('units/{unit}/edit', UnitsForm::class)->middleware('role:owner,manager')->name('units.edit');
 
     Route::get('sales', SalesIndex::class)->name('sales.index');
     Route::get('sales/create', SalesCreate::class)->name('sales.create');

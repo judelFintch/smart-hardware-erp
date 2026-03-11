@@ -11,6 +11,8 @@ use Livewire\Component;
 
 class Create extends Component
 {
+    public ?int $from_location_id = null;
+    public ?int $to_location_id = null;
     public array $items = [];
 
     public function mount(): void
@@ -35,6 +37,11 @@ class Create extends Component
 
     public function save(StockService $stockService): void
     {
+        $data = $this->validate([
+            'from_location_id' => ['required', 'exists:stock_locations,id'],
+            'to_location_id' => ['required', 'exists:stock_locations,id', 'different:from_location_id'],
+        ]);
+
         $filteredItems = array_values(array_filter($this->items, function ($item) {
             return !empty($item['product_id']) && !empty($item['quantity']);
         }));
@@ -44,15 +51,15 @@ class Create extends Component
             return;
         }
 
-        $depot = StockLocation::where('code', 'depot')->firstOrFail();
-        $magasin = StockLocation::where('code', 'magasin')->firstOrFail();
+        $from = StockLocation::findOrFail($data['from_location_id']);
+        $to = StockLocation::findOrFail($data['to_location_id']);
 
         foreach ($filteredItems as $item) {
             $product = Product::findOrFail($item['product_id']);
             $quantity = (float) $item['quantity'];
 
             $balance = StockBalance::where('product_id', $product->id)
-                ->where('location_id', $depot->id)
+                ->where('location_id', $from->id)
                 ->first();
 
             $available = (float) ($balance?->quantity ?? 0);
@@ -62,21 +69,21 @@ class Create extends Component
             }
         }
 
-        DB::transaction(function () use ($filteredItems, $stockService, $depot, $magasin) {
+        DB::transaction(function () use ($filteredItems, $stockService, $from, $to) {
             foreach ($filteredItems as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 $quantity = (float) $item['quantity'];
 
                 $balance = StockBalance::where('product_id', $product->id)
-                    ->where('location_id', $depot->id)
+                    ->where('location_id', $from->id)
                     ->first();
 
                 $unitCost = $balance?->avg_cost_local ?? $product->avg_cost_local;
 
                 $stockService->recordMovement([
                     'product_id' => $product->id,
-                    'from_location_id' => $depot->id,
-                    'to_location_id' => $magasin->id,
+                    'from_location_id' => $from->id,
+                    'to_location_id' => $to->id,
                     'quantity' => $quantity,
                     'unit_cost_local' => (float) $unitCost,
                     'unit_sale_price_local' => (float) $product->sale_price_local,
@@ -94,8 +101,9 @@ class Create extends Component
     public function render()
     {
         $products = Product::orderBy('name')->get();
+        $locations = StockLocation::orderBy('name')->get();
 
-        return view('livewire.stock-transfers.create', compact('products'))
+        return view('livewire.stock-transfers.create', compact('products', 'locations'))
             ->layout('layouts.app');
     }
 }

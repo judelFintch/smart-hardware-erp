@@ -1,28 +1,45 @@
-<div>
-    <h1 class="text-2xl font-semibold mb-4">{{ $title }}</h1>
-    <form wire:submit.prevent="save" class="space-y-4">
+<div class="form-section">
+    <div class="section-header">
         <div>
-            <label class="block">SKU</label>
-            <input wire:model.defer="sku" class="border p-2 w-full" required>
-            @error('sku') <span class="text-red-600">{{ $message }}</span> @enderror
+            <div class="text-sm text-slate-500">Article</div>
+            <div class="text-lg font-semibold">{{ $title }}</div>
+        </div>
+        <a class="btn btn-secondary" href="{{ route('products.index') }}" wire:navigate>Retour</a>
+    </div>
+    <form wire:submit.prevent="save" class="section-body space-y-6">
+        <div class="form-grid">
+            <div>
+                <label class="block text-sm font-medium">SKU</label>
+                <input wire:model.defer="sku" class="input" required>
+                @error('sku') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Nom</label>
+                <input wire:model.defer="name" class="input" required>
+                @error('name') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Unité</label>
+                <select wire:model.defer="unit_id" class="input" required>
+                    <option value="">-- Choisir --</option>
+                    @foreach ($units as $unit)
+                        <option value="{{ $unit->id }}">{{ $unit->name }} ({{ strtoupper($unit->code) }})</option>
+                    @endforeach
+                </select>
+                @error('unit_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Marge (%)</label>
+                <input wire:model.defer="sale_margin_percent" type="number" step="0.01" class="input">
+            </div>
         </div>
         <div>
-            <label class="block">Nom</label>
-            <input wire:model.defer="name" class="border p-2 w-full" required>
-            @error('name') <span class="text-red-600">{{ $message }}</span> @enderror
+            <label class="block text-sm font-medium">Description</label>
+            <textarea wire:model.defer="description" rows="4" class="input"></textarea>
         </div>
-        <div>
-            <label class="block">Unité</label>
-            <input wire:model.defer="unit" class="border p-2 w-full">
+        <div class="flex items-center justify-end gap-2">
+            <a class="btn btn-secondary" href="{{ route('products.index') }}" wire:navigate>Annuler</a>
+            <button class="btn btn-primary" type="submit">Enregistrer</button>
         </div>
-        <div>
-            <label class="block">Marge (%)</label>
-            <input wire:model.defer="sale_margin_percent" type="number" step="0.01" class="border p-2 w-full">
-        </div>
-        <div>
-            <label class="block">Description</label>
-            <textarea wire:model.defer="description" class="border p-2 w-full"></textarea>
-        </div>
-        <button class="px-3 py-2 bg-blue-600 text-white rounded" type="submit">Enregistrer</button>
     </form>
 </div>
