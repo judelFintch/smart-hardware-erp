@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Gestion de Stock</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @livewireStyles
 </head>
 <body class="bg-gray-100 text-gray-900">
     <header class="bg-white shadow">
@@ -22,7 +23,8 @@
         </div>
     </header>
     <main class="max-w-7xl mx-auto px-4 py-6">
-        @yield('content')
+        {{ $slot }}
     </main>
+    @livewireScripts
 </body>
 </html>

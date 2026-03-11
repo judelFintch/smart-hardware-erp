@@ -1,46 +1,53 @@
 <?php
 
-use App\Http\Controllers\CustomerController;
-use App\Http\Controllers\ExpenseController;
-use App\Http\Controllers\InventoryCountController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\PurchaseOrderController;
-use App\Http\Controllers\ReportController;
-use App\Http\Controllers\SaleController;
-use App\Http\Controllers\SalePaymentController;
-use App\Http\Controllers\StockTransferController;
-use App\Http\Controllers\SupplierController;
+use App\Livewire\Customers\Form as CustomersForm;
+use App\Livewire\Customers\Index as CustomersIndex;
+use App\Livewire\Dashboard;
+use App\Livewire\Expenses\Form as ExpensesForm;
+use App\Livewire\Expenses\Index as ExpensesIndex;
+use App\Livewire\InventoryCounts\Create as InventoryCountsCreate;
+use App\Livewire\Products\Form as ProductsForm;
+use App\Livewire\Products\Index as ProductsIndex;
+use App\Livewire\Purchases\Create as PurchasesCreate;
+use App\Livewire\Purchases\Index as PurchasesIndex;
+use App\Livewire\Purchases\Show as PurchasesShow;
+use App\Livewire\Reports\Financial as ReportsFinancial;
+use App\Livewire\Sales\Create as SalesCreate;
+use App\Livewire\Sales\Index as SalesIndex;
+use App\Livewire\Sales\Show as SalesShow;
+use App\Livewire\StockTransfers\Create as StockTransfersCreate;
+use App\Livewire\Suppliers\Form as SuppliersForm;
+use App\Livewire\Suppliers\Index as SuppliersIndex;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('dashboard');
-})->name('dashboard');
+Route::get('/', Dashboard::class)->name('dashboard');
 
-Route::resource('products', ProductController::class)->except(['show']);
-Route::resource('suppliers', SupplierController::class)->except(['show']);
-Route::resource('customers', CustomerController::class)->except(['show']);
-Route::resource('expenses', ExpenseController::class)->except(['show']);
-Route::get('inventory-counts/create', [InventoryCountController::class, 'create'])->name('inventory-counts.create');
-Route::post('inventory-counts', [InventoryCountController::class, 'store'])->name('inventory-counts.store');
+Route::get('products', ProductsIndex::class)->name('products.index');
+Route::get('products/create', ProductsForm::class)->name('products.create');
+Route::get('products/{product}/edit', ProductsForm::class)->name('products.edit');
 
-Route::get('purchases', [PurchaseOrderController::class, 'index'])->name('purchases.index');
-Route::get('purchases/export', [PurchaseOrderController::class, 'export'])->name('purchases.export');
-Route::get('purchases/create', [PurchaseOrderController::class, 'create'])->name('purchases.create');
-Route::post('purchases', [PurchaseOrderController::class, 'store'])->name('purchases.store');
-Route::get('purchases/{purchaseOrder}', [PurchaseOrderController::class, 'show'])->name('purchases.show');
-Route::post('purchases/{purchaseOrder}/transfers', [PurchaseOrderController::class, 'storeTransfer'])->name('purchases.transfers.store');
-Route::post('purchases/{purchaseOrder}/receive', [PurchaseOrderController::class, 'receive'])->name('purchases.receive');
+Route::get('suppliers', SuppliersIndex::class)->name('suppliers.index');
+Route::get('suppliers/create', SuppliersForm::class)->name('suppliers.create');
+Route::get('suppliers/{supplier}/edit', SuppliersForm::class)->name('suppliers.edit');
 
-Route::get('stock-transfers/create', [StockTransferController::class, 'create'])->name('stock-transfers.create');
-Route::post('stock-transfers', [StockTransferController::class, 'store'])->name('stock-transfers.store');
+Route::get('customers', CustomersIndex::class)->name('customers.index');
+Route::get('customers/create', CustomersForm::class)->name('customers.create');
+Route::get('customers/{customer}/edit', CustomersForm::class)->name('customers.edit');
 
-Route::get('sales', [SaleController::class, 'index'])->name('sales.index');
-Route::get('sales/export', [SaleController::class, 'export'])->name('sales.export');
-Route::get('sales/create', [SaleController::class, 'create'])->name('sales.create');
-Route::post('sales', [SaleController::class, 'store'])->name('sales.store');
-Route::get('sales/{sale}', [SaleController::class, 'show'])->name('sales.show');
-Route::post('sales/{sale}/returns', [SaleController::class, 'returnItem'])->name('sales.returns.store');
+Route::get('expenses', ExpensesIndex::class)->name('expenses.index');
+Route::get('expenses/create', ExpensesForm::class)->name('expenses.create');
+Route::get('expenses/{expense}/edit', ExpensesForm::class)->name('expenses.edit');
 
-Route::post('sales/{sale}/payments', [SalePaymentController::class, 'store'])->name('sales.payments.store');
+Route::get('purchases', PurchasesIndex::class)->name('purchases.index');
+Route::get('purchases/create', PurchasesCreate::class)->name('purchases.create');
+Route::get('purchases/{purchaseOrder}', PurchasesShow::class)->name('purchases.show');
 
-Route::get('reports/financial', [ReportController::class, 'financial'])->name('reports.financial');
+Route::get('stock-transfers/create', StockTransfersCreate::class)->name('stock-transfers.create');
+
+Route::get('sales', SalesIndex::class)->name('sales.index');
+Route::get('sales/create', SalesCreate::class)->name('sales.create');
+Route::get('sales/{sale}', SalesShow::class)->name('sales.show');
+
+Route::get('inventory-counts/create', InventoryCountsCreate::class)->name('inventory-counts.create');
+
+Route::get('reports/financial', ReportsFinancial::class)->name('reports.financial');

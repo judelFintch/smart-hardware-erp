@@ -1,0 +1,100 @@
+<?php
+
+namespace App\Livewire\Purchases;
+
+use App\Models\PurchaseOrder;
+use App\Models\PurchaseTransfer;
+use App\Models\StockLocation;
+use App\Models\StockMovement;
+use App\Services\StockService;
+use Illuminate\Support\Facades\DB;
+use Livewire\Component;
+
+class Show extends Component
+{
+    public PurchaseOrder $purchaseOrder;
+
+    public float $amount_foreign = 0;
+    public float $amount_local = 0;
+    public ?string $paid_at = null;
+    public string $reference = '';
+    public string $notes = '';
+
+    public function mount(PurchaseOrder $purchaseOrder): void
+    {
+        $this->purchaseOrder = $purchaseOrder->load(['supplier', 'items.product', 'transfers']);
+    }
+
+    public function addTransfer(): void
+    {
+        $data = $this->validate([
+            'amount_foreign' => ['nullable', 'numeric', 'min:0'],
+            'amount_local' => ['nullable', 'numeric', 'min:0'],
+            'paid_at' => ['nullable', 'date'],
+            'reference' => ['nullable', 'string', 'max:255'],
+            'notes' => ['nullable', 'string'],
+        ]);
+
+        PurchaseTransfer::create([
+            'purchase_order_id' => $this->purchaseOrder->id,
+            'amount_foreign' => (float) ($data['amount_foreign'] ?? 0),
+            'amount_local' => (float) ($data['amount_local'] ?? 0),
+            'paid_at' => $data['paid_at'] ?? null,
+            'reference' => $data['reference'] ?? null,
+            'notes' => $data['notes'] ?? null,
+        ]);
+
+        $this->reset(['amount_foreign', 'amount_local', 'paid_at', 'reference', 'notes']);
+        $this->purchaseOrder->refresh()->load(['supplier', 'items.product', 'transfers']);
+    }
+
+    public function receive(StockService $stockService): void
+    {
+        DB::transaction(function () use ($stockService) {
+            if ($this->purchaseOrder->status !== 'receptionnee') {
+                $this->purchaseOrder->update([
+                    'status' => 'receptionnee',
+                    'received_at' => $this->purchaseOrder->received_at ?? now()->toDateString(),
+                ]);
+            }
+
+            $alreadyReceived = StockMovement::where('reference_type', PurchaseOrder::class)
+                ->where('reference_id', $this->purchaseOrder->id)
+                ->where('type', 'purchase_in')
+                ->exists();
+
+            if ($alreadyReceived) {
+                return;
+            }
+
+            $depot = StockLocation::where('code', 'depot')->firstOrFail();
+            $this->purchaseOrder->load('items.product');
+
+            foreach ($this->purchaseOrder->items as $item) {
+                $unitCost = (float) $item->unit_cost_local;
+                $unitSale = (float) $item->product->sale_price_local;
+
+                $stockService->recordMovement([
+                    'product_id' => $item->product_id,
+                    'from_location_id' => null,
+                    'to_location_id' => $depot->id,
+                    'quantity' => $item->quantity,
+                    'unit_cost_local' => $unitCost,
+                    'unit_sale_price_local' => $unitSale,
+                    'type' => 'purchase_in',
+                    'reference_type' => PurchaseOrder::class,
+                    'reference_id' => $this->purchaseOrder->id,
+                    'occurred_at' => $this->purchaseOrder->received_at ?? now(),
+                ]);
+            }
+        });
+
+        $this->purchaseOrder->refresh()->load(['supplier', 'items.product', 'transfers']);
+    }
+
+    public function render()
+    {
+        return view('livewire.purchases.show')
+            ->layout('layouts.app');
+    }
+}
