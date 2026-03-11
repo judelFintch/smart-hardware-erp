@@ -1,8 +1,15 @@
 <div>
     <div class="flex items-center justify-between mb-4">
         <h1 class="text-2xl font-semibold">Articles</h1>
-        <a href="{{ route('products.create') }}" class="px-3 py-2 bg-blue-600 text-white rounded">Nouveau</a>
+        <div class="flex gap-2 items-center">
+            <form wire:submit.prevent="importCsv" class="flex gap-2 items-center">
+                <input type="file" wire:model="importFile" class="border p-2">
+                <button type="submit" class="px-3 py-2 bg-gray-700 text-white rounded">Importer CSV</button>
+            </form>
+            <a href="{{ route('products.create') }}" class="px-3 py-2 bg-blue-600 text-white rounded">Nouveau</a>
+        </div>
     </div>
+    @error('importFile') <span class="text-red-600">{{ $message }}</span> @enderror
     <table class="w-full bg-white shadow rounded">
         <thead>
             <tr class="text-left border-b">

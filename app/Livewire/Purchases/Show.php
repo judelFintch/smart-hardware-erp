@@ -2,16 +2,22 @@
 
 namespace App\Livewire\Purchases;
 
+use App\Models\Attachment;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseTransfer;
 use App\Models\StockLocation;
 use App\Models\StockMovement;
 use App\Services\StockService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class Show extends Component
 {
+    use WithFileUploads;
+
     public PurchaseOrder $purchaseOrder;
 
     public float $amount_foreign = 0;
@@ -20,9 +26,12 @@ class Show extends Component
     public string $reference = '';
     public string $notes = '';
 
+    #[Validate('nullable|file|max:5120|mimes:pdf,jpg,jpeg,png')]
+    public $attachment;
+
     public function mount(PurchaseOrder $purchaseOrder): void
     {
-        $this->purchaseOrder = $purchaseOrder->load(['supplier', 'items.product', 'transfers']);
+        $this->purchaseOrder = $purchaseOrder->load(['supplier', 'items.product', 'transfers', 'attachments']);
     }
 
     public function addTransfer(): void
@@ -46,6 +55,39 @@ class Show extends Component
 
         $this->reset(['amount_foreign', 'amount_local', 'paid_at', 'reference', 'notes']);
         $this->purchaseOrder->refresh()->load(['supplier', 'items.product', 'transfers']);
+    }
+
+    public function uploadAttachment(): void
+    {
+        $this->validateOnly('attachment');
+
+        if (!$this->attachment) {
+            return;
+        }
+
+        $path = $this->attachment->store('attachments/purchases');
+
+        Attachment::create([
+            'file_path' => $path,
+            'original_name' => $this->attachment->getClientOriginalName(),
+            'mime_type' => $this->attachment->getMimeType(),
+            'size' => $this->attachment->getSize(),
+            'attachable_type' => PurchaseOrder::class,
+            'attachable_id' => $this->purchaseOrder->id,
+        ]);
+
+        $this->reset('attachment');
+        $this->purchaseOrder->refresh()->load(['attachments']);
+    }
+
+    public function downloadAttachment(int $attachmentId)
+    {
+        $attachment = Attachment::where('attachable_type', PurchaseOrder::class)
+            ->where('attachable_id', $this->purchaseOrder->id)
+            ->whereKey($attachmentId)
+            ->firstOrFail();
+
+        return Storage::download($attachment->file_path, $attachment->original_name);
     }
 
     public function receive(StockService $stockService): void

@@ -47,4 +47,21 @@
     @if ($purchaseOrder->status !== 'receptionnee')
         <button wire:click="receive" class="px-3 py-2 bg-green-600 text-white rounded" type="button">Marquer réception & stocker</button>
     @endif
+
+    <h2 class="text-lg font-semibold mt-6 mb-2">Pièces jointes</h2>
+    <form wire:submit.prevent="uploadAttachment" class="space-y-2 mb-4">
+        <input type="file" wire:model="attachment" class="border p-2">
+        @error('attachment') <span class="text-red-600">{{ $message }}</span> @enderror
+        <button class="px-3 py-2 bg-blue-600 text-white rounded" type="submit">Ajouter pièce</button>
+    </form>
+
+    <ul class="list-disc pl-6">
+        @foreach ($purchaseOrder->attachments as $file)
+            <li class="mb-1">
+                <button wire:click="downloadAttachment({{ $file->id }})" class="text-blue-600" type="button">
+                    {{ $file->original_name }}
+                </button>
+            </li>
+        @endforeach
+    </ul>
 </div>

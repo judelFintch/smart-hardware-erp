@@ -2,9 +2,11 @@
 
 namespace App\Models;
 
+use App\Models\Attachment;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class PurchaseOrder extends Model
 {
@@ -46,5 +48,10 @@ class PurchaseOrder extends Model
     public function transfers(): HasMany
     {
         return $this->hasMany(PurchaseTransfer::class);
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable');
     }
 }
