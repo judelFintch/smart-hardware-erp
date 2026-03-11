@@ -12,6 +12,7 @@ class DatabaseSeeder extends Seeder
             AdminUserSeeder::class,
             UnitsSeeder::class,
             StockLocationsSeeder::class,
+            CompanySettingsSeeder::class,
             DemoDataSeeder::class,
         ]);
     }

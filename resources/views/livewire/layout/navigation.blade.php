@@ -49,6 +49,9 @@ new class extends Component
                     <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}" wire:navigate>
                         Utilisateurs
                     </a>
+                    <a class="nav-link {{ request()->routeIs('company.*') ? 'active' : '' }}" href="{{ route('company.settings') }}" wire:navigate>
+                        Entreprise
+                    </a>
                 @endif
                 <a class="nav-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}" href="{{ route('suppliers.index') }}" wire:navigate>
                     Fournisseurs
@@ -122,6 +125,7 @@ new class extends Component
                     <a class="nav-link {{ request()->routeIs('stock-locations.*') ? 'active' : '' }}" href="{{ route('stock-locations.index') }}" wire:navigate>Magasins & Dépôts</a>
                     <a class="nav-link {{ request()->routeIs('units.*') ? 'active' : '' }}" href="{{ route('units.index') }}" wire:navigate>Unités</a>
                     <a class="nav-link {{ request()->routeIs('users.*') ? 'active' : '' }}" href="{{ route('users.index') }}" wire:navigate>Utilisateurs</a>
+                    <a class="nav-link {{ request()->routeIs('company.*') ? 'active' : '' }}" href="{{ route('company.settings') }}" wire:navigate>Entreprise</a>
                 @endif
                 <a class="nav-link {{ request()->routeIs('suppliers.*') ? 'active' : '' }}" href="{{ route('suppliers.index') }}" wire:navigate>Fournisseurs</a>
                 <a class="nav-link {{ request()->routeIs('customers.*') ? 'active' : '' }}" href="{{ route('customers.index') }}" wire:navigate>Clients</a>
