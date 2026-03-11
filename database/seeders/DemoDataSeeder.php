@@ -1,0 +1,42 @@
+<?php
+
+namespace Database\Seeders;
+
+use App\Models\Customer;
+use App\Models\Product;
+use App\Models\Supplier;
+use Illuminate\Database\Seeder;
+
+class DemoDataSeeder extends Seeder
+{
+    public function run(): void
+    {
+        $suppliers = [
+            ['name' => 'Fournisseur Local A', 'type' => 'local', 'phone' => '0900000001'],
+            ['name' => 'Fournisseur Étranger B', 'type' => 'foreign', 'phone' => '0900000002'],
+        ];
+
+        foreach ($suppliers as $supplier) {
+            Supplier::firstOrCreate(['name' => $supplier['name']], $supplier);
+        }
+
+        $customers = [
+            ['name' => 'Client Comptant', 'phone' => '0910000001'],
+            ['name' => 'Client Crédit', 'phone' => '0910000002'],
+        ];
+
+        foreach ($customers as $customer) {
+            Customer::firstOrCreate(['name' => $customer['name']], $customer);
+        }
+
+        $products = [
+            ['sku' => 'ART-001', 'name' => 'Marteau', 'unit' => 'pcs', 'sale_margin_percent' => 20],
+            ['sku' => 'ART-002', 'name' => 'Clous 1kg', 'unit' => 'kg', 'sale_margin_percent' => 15],
+            ['sku' => 'ART-003', 'name' => 'Peinture 1L', 'unit' => 'L', 'sale_margin_percent' => 25],
+        ];
+
+        foreach ($products as $product) {
+            Product::firstOrCreate(['sku' => $product['sku']], $product);
+        }
+    }
+}

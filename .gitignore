@@ -30,4 +30,4 @@ Homestead.json
 .phpactor.json
 auth.json
 database/database.sqlite
-/bootstrap/cache/*.php
+

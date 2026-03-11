@@ -7,9 +7,6 @@ use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
         StockLocation::firstOrCreate(
@@ -21,5 +18,10 @@ class DatabaseSeeder extends Seeder
             ['code' => 'magasin'],
             ['name' => 'Magasin']
         );
+
+        $this->call([
+            AdminUserSeeder::class,
+            DemoDataSeeder::class,
+        ]);
     }
 }
