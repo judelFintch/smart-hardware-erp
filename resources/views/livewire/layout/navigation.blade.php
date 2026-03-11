@@ -19,12 +19,21 @@ new class extends Component
 <div>
     <aside class="hidden lg:flex lg:fixed lg:inset-y-0 lg:w-64 bg-white border-r border-slate-200">
         <div class="flex flex-col w-full">
-            <div class="h-16 px-6 flex items-center border-b border-slate-100">
+            <div class="px-6 py-5 border-b border-slate-100">
                 <div class="flex items-center gap-3">
                     <div class="h-10 w-10 rounded-xl bg-slate-900 text-white grid place-items-center font-semibold">Q</div>
                     <div>
                         <div class="text-sm uppercase tracking-[0.2em] text-slate-400">Quincaillerie</div>
                         <div class="text-lg font-semibold">Stock Manager</div>
+                    </div>
+                </div>
+                <div class="mt-4 card p-3">
+                    <div class="text-xs text-slate-500">Connecté</div>
+                    <div class="font-semibold">{{ auth()->user()->name }}</div>
+                    <div class="text-xs text-slate-400">{{ auth()->user()->email }}</div>
+                    <div class="mt-3 flex items-center gap-2">
+                        <a class="btn btn-secondary" href="{{ route('profile') }}" wire:navigate>Profil</a>
+                        <button class="btn btn-primary" wire:click="logout" type="button">Déconnexion</button>
                     </div>
                 </div>
             </div>
@@ -84,17 +93,7 @@ new class extends Component
                 @endif
             </nav>
 
-            <div class="px-4 pb-6">
-                <div class="card p-4">
-                    <div class="text-xs text-slate-500">Connecté</div>
-                    <div class="font-semibold">{{ auth()->user()->name }}</div>
-                    <div class="text-xs text-slate-400">{{ auth()->user()->email }}</div>
-                    <div class="mt-3 flex items-center gap-2">
-                        <a class="btn btn-secondary" href="{{ route('profile') }}" wire:navigate>Profil</a>
-                        <button class="btn btn-primary" wire:click="logout" type="button">Déconnexion</button>
-                    </div>
-                </div>
-            </div>
+            <div class="px-4 pb-6"></div>
         </div>
     </aside>
 
@@ -111,10 +110,21 @@ new class extends Component
     <div x-data="{ open: false }" @toggle-mobile-nav.window="open = !open" class="lg:hidden">
         <div x-show="open" x-transition class="fixed inset-0 z-40 bg-black/40"></div>
         <div x-show="open" x-transition class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200">
-            <div class="px-4 py-4 border-b border-slate-100 flex items-center justify-between">
+        <div class="px-4 py-4 border-b border-slate-100">
+            <div class="flex items-center justify-between">
                 <div class="font-semibold">Navigation</div>
                 <button class="btn btn-secondary" @click="open = false">Fermer</button>
             </div>
+            <div class="mt-3 card p-3">
+                <div class="text-xs text-slate-500">Connecté</div>
+                <div class="font-semibold">{{ auth()->user()->name }}</div>
+                <div class="text-xs text-slate-400">{{ auth()->user()->email }}</div>
+                <div class="mt-3 flex items-center gap-2">
+                    <a class="btn btn-secondary" href="{{ route('profile') }}" wire:navigate>Profil</a>
+                    <button class="btn btn-primary" wire:click="logout" type="button">Déconnexion</button>
+                </div>
+            </div>
+        </div>
             <nav class="px-4 py-4 space-y-1">
                 <div class="sidebar-title">Vue</div>
                 <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}" wire:navigate>Dashboard</a>
