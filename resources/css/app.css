@@ -1,3 +1,108 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --bg: 248 249 251;
+    --surface: 255 255 255;
+    --ink: 15 23 42;
+    --muted: 100 116 139;
+    --primary: 12 74 110; /* petrol */
+    --primary-strong: 8 47 73;
+    --accent: 217 119 6; /* copper */
+    --border: 226 232 240;
+    --success: 22 163 74;
+    --danger: 220 38 38;
+  }
+
+  body {
+    @apply antialiased;
+    background-color: rgb(var(--bg));
+    color: rgb(var(--ink));
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-slate-200 bg-white shadow-sm;
+  }
+
+  .card-header {
+    @apply flex items-center justify-between gap-4 px-6 py-4 border-b border-slate-100;
+  }
+
+  .card-body {
+    @apply px-6 py-5;
+  }
+
+  .kpi {
+    @apply card p-5 flex flex-col gap-2;
+  }
+
+  .kpi .label {
+    @apply text-sm text-slate-500;
+  }
+
+  .kpi .value {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold;
+  }
+
+  .badge-info {
+    @apply bg-slate-100 text-slate-700;
+  }
+
+  .badge-warn {
+    @apply bg-amber-100 text-amber-800;
+  }
+
+  .badge-success {
+    @apply bg-emerald-100 text-emerald-700;
+  }
+
+  .badge-danger {
+    @apply bg-red-100 text-red-700;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-semibold transition;
+  }
+
+  .btn-primary {
+    background-color: rgb(var(--primary));
+    color: white;
+  }
+
+  .btn-primary:hover {
+    background-color: rgb(var(--primary-strong));
+  }
+
+  .btn-secondary {
+    @apply bg-slate-100 text-slate-700 hover:bg-slate-200;
+  }
+
+  .btn-accent {
+    background-color: rgb(var(--accent));
+    color: white;
+  }
+
+  .btn-accent:hover {
+    filter: brightness(0.95);
+  }
+
+  .input {
+    @apply w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-slate-400 focus:outline-none;
+  }
+
+  .nav-link {
+    @apply inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+  }
+
+  .nav-link.active {
+    @apply bg-slate-900 text-white;
+  }
+}

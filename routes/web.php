@@ -55,6 +55,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('inventory-counts/create', InventoryCountsCreate::class)->name('inventory-counts.create');
 
     Route::get('reports/financial', ReportsFinancial::class)->middleware('role:owner,manager')->name('reports.financial');
+
+    Route::view('profile', 'profile')->name('profile');
 });
 
 require __DIR__.'/auth.php';
