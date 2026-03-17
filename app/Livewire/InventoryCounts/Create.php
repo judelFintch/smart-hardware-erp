@@ -48,6 +48,8 @@ class Create extends Component
             'location_id' => ['required', 'exists:stock_locations,id'],
             'counted_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
+            'items.*.product_id' => ['nullable', 'exists:products,id'],
+            'items.*.counted_quantity' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         if (count($filteredItems) === 0) {
@@ -101,7 +103,7 @@ class Create extends Component
             }
         });
 
-        $this->redirectRoute('dashboard');
+        $this->redirectRoute('inventory-counts.index');
     }
 
     public function render()

@@ -11,9 +11,11 @@ class Form extends Component
     public ?Product $product = null;
     public string $sku = '';
     public string $name = '';
+    public string $barcode = '';
     public ?int $unit_id = null;
     public string $description = '';
     public float $sale_margin_percent = 0;
+    public float $reorder_level = 0;
     public bool $is_active = true;
 
     public function mount(?Product $product = null): void
@@ -22,9 +24,11 @@ class Form extends Component
             $this->product = $product;
             $this->sku = $product->sku;
             $this->name = $product->name;
+            $this->barcode = (string) $product->barcode;
             $this->unit_id = $product->unit_id;
             $this->description = (string) $product->description;
             $this->sale_margin_percent = (float) $product->sale_margin_percent;
+            $this->reorder_level = (float) $product->reorder_level;
             $this->is_active = (bool) $product->is_active;
         }
     }
@@ -33,10 +37,12 @@ class Form extends Component
     {
         $data = $this->validate([
             'sku' => ['required', 'string', 'max:255', 'unique:products,sku,' . ($this->product?->id ?? 'NULL')],
+            'barcode' => ['nullable', 'string', 'max:255', 'unique:products,barcode,' . ($this->product?->id ?? 'NULL')],
             'name' => ['required', 'string', 'max:255'],
             'unit_id' => ['required', 'exists:units,id'],
             'description' => ['nullable', 'string'],
             'sale_margin_percent' => ['nullable', 'numeric', 'min:0'],
+            'reorder_level' => ['nullable', 'numeric', 'min:0'],
             'is_active' => ['boolean'],
         ]);
 

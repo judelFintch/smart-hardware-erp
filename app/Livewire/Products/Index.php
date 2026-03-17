@@ -6,12 +6,15 @@ use App\Models\Product;
 use App\Models\Unit;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
     use WithFileUploads;
+    use WithPagination;
 
     public $importFile;
+    public int $perPage = 15;
 
     public function delete(int $productId): void
     {
@@ -49,6 +52,7 @@ class Index extends Component
 
             $product = Product::firstOrNew(['sku' => $data['sku']]);
             $product->name = $data['name'];
+            $product->barcode = $data['barcode'] ?? $product->barcode;
             if (!empty($data['unit_code'])) {
                 $unit = Unit::where('code', $data['unit_code'])->first();
                 $product->unit_id = $unit?->id ?? $product->unit_id;
@@ -59,6 +63,7 @@ class Index extends Component
             }
             $product->description = $data['description'] ?? $product->description;
             $product->sale_margin_percent = isset($data['margin']) ? (float) $data['margin'] : $product->sale_margin_percent;
+            $product->reorder_level = isset($data['reorder_level']) ? (float) $data['reorder_level'] : $product->reorder_level;
             if (!$product->exists) {
                 $product->avg_cost_local = 0;
                 $product->sale_price_local = 0;
@@ -72,7 +77,7 @@ class Index extends Component
 
     public function render()
     {
-        $products = Product::orderBy('name')->get();
+        $products = Product::orderBy('name')->paginate($this->perPage);
 
         return view('livewire.products.index', compact('products'))
             ->layout('layouts.app');

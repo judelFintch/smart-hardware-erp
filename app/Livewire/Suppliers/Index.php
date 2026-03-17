@@ -4,9 +4,14 @@ namespace App\Livewire\Suppliers;
 
 use App\Models\Supplier;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 class Index extends Component
 {
+    use WithPagination;
+
+    public int $perPage = 15;
+
     public function delete(int $supplierId): void
     {
         Supplier::whereKey($supplierId)->delete();
@@ -14,7 +19,7 @@ class Index extends Component
 
     public function render()
     {
-        $suppliers = Supplier::orderBy('name')->get();
+        $suppliers = Supplier::orderBy('name')->paginate($this->perPage);
 
         return view('livewire.suppliers.index', compact('suppliers'))
             ->layout('layouts.app');

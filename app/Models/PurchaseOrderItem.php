@@ -11,6 +11,7 @@ class PurchaseOrderItem extends Model
         'purchase_order_id',
         'product_id',
         'quantity',
+        'received_quantity',
         'unit_price_foreign',
         'unit_price_local',
         'line_total_foreign',

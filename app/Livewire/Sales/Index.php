@@ -2,39 +2,38 @@
 
 namespace App\Livewire\Sales;
 
+use App\Exports\SalesExport;
+use App\Models\CompanySetting;
 use App\Models\Sale;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
 
 class Index extends Component
 {
-    public function export(): StreamedResponse
+    use WithPagination;
+
+    public int $perPage = 15;
+
+    public function export()
     {
+        return Excel::download(new SalesExport(), 'sales.xlsx');
+    }
+
+    public function exportPdf()
+    {
+        $company = CompanySetting::first();
         $sales = Sale::with('customer')->orderByDesc('sold_at')->get();
 
-        return response()->streamDownload(function () use ($sales) {
-            $handle = fopen('php://output', 'w');
-            fputcsv($handle, ['ID', 'Client', 'Type', 'Statut', 'Total', 'Payé', 'Date']);
+        $pdf = Pdf::loadView('exports.sales', compact('company', 'sales'));
 
-            foreach ($sales as $sale) {
-                fputcsv($handle, [
-                    $sale->id,
-                    $sale->customer?->name,
-                    $sale->type,
-                    $sale->status,
-                    $sale->total_amount,
-                    $sale->paid_total,
-                    $sale->sold_at,
-                ]);
-            }
-
-            fclose($handle);
-        }, 'sales.csv', ['Content-Type' => 'text/csv']);
+        return response()->streamDownload(fn () => print($pdf->output()), 'sales.pdf');
     }
 
     public function render()
     {
-        $sales = Sale::with('customer')->orderByDesc('sold_at')->get();
+        $sales = Sale::with('customer')->orderByDesc('sold_at')->paginate($this->perPage);
 
         return view('livewire.sales.index', compact('sales'))
             ->layout('layouts.app');

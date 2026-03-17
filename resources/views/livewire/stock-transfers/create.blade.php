@@ -4,9 +4,9 @@
             <div class="text-sm text-slate-500">Stock</div>
             <div class="text-lg font-semibold">Transfert entre magasins</div>
         </div>
-        <a class="btn btn-secondary" href="{{ route('dashboard') }}" wire:navigate>Retour</a>
+        <a class="btn btn-secondary" href="{{ route('stock-movements.index') }}" wire:navigate>Retour</a>
     </div>
-    <form wire:submit.prevent="save" class="section-body space-y-6">
+    <form wire:submit.prevent="save" class="section-body space-y-6" data-autosave data-autosave-key="stock-transfer-create">
         <div class="form-grid">
             <div>
                 <label class="block text-sm font-medium">De</label>
@@ -55,7 +55,7 @@
             </div>
         </div>
         <div class="flex items-center justify-end gap-2">
-            <a class="btn btn-secondary" href="{{ route('dashboard') }}" wire:navigate>Annuler</a>
+            <a class="btn btn-secondary" href="{{ route('stock-movements.index') }}" wire:navigate>Annuler</a>
             <button class="btn btn-primary" type="submit">Transférer</button>
         </div>
     </form>

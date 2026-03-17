@@ -6,7 +6,7 @@
         </div>
         <a class="btn btn-secondary" href="{{ route('products.index') }}" wire:navigate>Retour</a>
     </div>
-    <form wire:submit.prevent="save" class="section-body space-y-6">
+    <form wire:submit.prevent="save" class="section-body space-y-6" data-autosave data-autosave-key="product-form-{{ $product?->id ?? 'new' }}">
         <div class="form-grid">
             <div>
                 <label class="block text-sm font-medium">SKU</label>
@@ -17,6 +17,11 @@
                 <label class="block text-sm font-medium">Nom</label>
                 <input wire:model.defer="name" class="input" required>
                 @error('name') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Code-barres</label>
+                <input wire:model.defer="barcode" class="input">
+                @error('barcode') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
             <div>
                 <label class="block text-sm font-medium">Unité</label>
@@ -31,6 +36,11 @@
             <div>
                 <label class="block text-sm font-medium">Marge (%)</label>
                 <input wire:model.defer="sale_margin_percent" type="number" step="0.01" class="input">
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Seuil d'alerte</label>
+                <input wire:model.defer="reorder_level" type="number" step="0.001" class="input" placeholder="0">
+                @error('reorder_level') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
         </div>
         <div>

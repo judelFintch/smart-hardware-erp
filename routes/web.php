@@ -3,10 +3,11 @@
 use App\Livewire\Customers\Form as CustomersForm;
 use App\Livewire\Customers\Index as CustomersIndex;
 use App\Livewire\Dashboard;
+use App\Livewire\ActivityLogs\Index as ActivityLogsIndex;
 use App\Livewire\Expenses\Form as ExpensesForm;
 use App\Livewire\Expenses\Index as ExpensesIndex;
-use App\Livewire\InventoryCounts\Create as InventoryCountsCreate;
 use App\Livewire\InventoryCounts\Index as InventoryCountsIndex;
+use App\Livewire\InventoryCounts\Create as InventoryCountsCreate;
 use App\Livewire\Products\Form as ProductsForm;
 use App\Livewire\Products\Index as ProductsIndex;
 use App\Livewire\Purchases\Create as PurchasesCreate;
@@ -18,11 +19,13 @@ use App\Livewire\Sales\Index as SalesIndex;
 use App\Livewire\Sales\Show as SalesShow;
 use App\Models\CompanySetting;
 use App\Models\Sale;
+use App\Livewire\StockMovements\Index as StockMovementsIndex;
 use App\Livewire\StockLocations\Form as StockLocationsForm;
 use App\Livewire\StockLocations\Index as StockLocationsIndex;
 use App\Livewire\StockTransfers\Create as StockTransfersCreate;
 use App\Livewire\Suppliers\Form as SuppliersForm;
 use App\Livewire\Suppliers\Index as SuppliersIndex;
+use App\Livewire\System\Health as SystemHealth;
 use App\Livewire\Units\Form as UnitsForm;
 use App\Livewire\Units\Index as UnitsIndex;
 use App\Livewire\Users\Form as UsersForm;
@@ -66,6 +69,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('purchases/{purchaseOrder}', PurchasesShow::class)->name('purchases.show');
 
     Route::get('stock-transfers/create', StockTransfersCreate::class)->name('stock-transfers.create');
+    Route::get('stock-movements', StockMovementsIndex::class)->name('stock-movements.index');
     Route::get('stock-locations', StockLocationsIndex::class)->middleware('role:owner,manager')->name('stock-locations.index');
     Route::get('stock-locations/create', StockLocationsForm::class)->middleware('role:owner,manager')->name('stock-locations.create');
     Route::get('stock-locations/{stockLocation}/edit', StockLocationsForm::class)->middleware('role:owner,manager')->name('stock-locations.edit');
@@ -94,6 +98,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('inventory-counts/create', InventoryCountsCreate::class)->middleware('role:owner,manager')->name('inventory-counts.create');
 
     Route::get('reports/financial', ReportsFinancial::class)->middleware('role:owner,manager')->name('reports.financial');
+    Route::get('reports/activity', ActivityLogsIndex::class)->middleware('role:owner,manager')->name('reports.activity');
+    Route::get('system/health', SystemHealth::class)->middleware('role:owner,manager')->name('system.health');
 
     Route::view('profile', 'profile')->name('profile');
 });

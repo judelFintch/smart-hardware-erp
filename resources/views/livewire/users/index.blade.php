@@ -10,30 +10,42 @@
     @error('delete') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
 
     <div class="card overflow-hidden">
-        <table class="w-full">
-            <thead>
-                <tr class="text-left border-b">
-                    <th class="p-3">Nom</th>
-                    <th class="p-3">Email</th>
-                    <th class="p-3">Rôle</th>
-                    <th class="p-3">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($users as $user)
-                    <tr class="border-b">
-                        <td class="p-3">{{ $user->name }}</td>
-                        <td class="p-3">{{ $user->email }}</td>
-                        <td class="p-3">
-                            <span class="badge badge-info">{{ $user->role }}</span>
-                        </td>
-                        <td class="p-3">
-                            <a href="{{ route('users.edit', $user) }}" class="text-blue-600" wire:navigate>Modifier</a>
-                            <button wire:click="delete({{ $user->id }})" class="text-red-600 ml-2" type="button">Supprimer</button>
-                        </td>
+        @if ($users->isEmpty())
+            <x-empty-state
+                title="Aucun utilisateur"
+                description="Ajoutez des comptes pour votre équipe."
+                action="Nouvel utilisateur"
+                :action-href="route('users.create')"
+            />
+        @else
+            <table class="w-full">
+                <thead>
+                    <tr class="text-left border-b">
+                        <th class="p-3">Nom</th>
+                        <th class="p-3">Email</th>
+                        <th class="p-3">Rôle</th>
+                        <th class="p-3">Actions</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach ($users as $user)
+                        <tr class="border-b">
+                            <td class="p-3">{{ $user->name }}</td>
+                            <td class="p-3">{{ $user->email }}</td>
+                            <td class="p-3">
+                                <span class="badge badge-info">{{ $user->role }}</span>
+                            </td>
+                            <td class="p-3">
+                                <a href="{{ route('users.edit', $user) }}" class="text-blue-600" wire:navigate>Modifier</a>
+                                <button wire:click="delete({{ $user->id }})" class="text-red-600 ml-2" type="button">Supprimer</button>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+    </div>
+    <div>
+        {{ $users->links() }}
     </div>
 </div>

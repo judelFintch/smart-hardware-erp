@@ -27,6 +27,10 @@ new class extends Component
                         <div class="text-lg font-semibold">Stock Manager</div>
                     </div>
                 </div>
+                <div class="mt-4">
+                    <livewire:global-search />
+                    <div class="mt-2 text-xs text-slate-400">Raccourci: Alt + F</div>
+                </div>
                 <div class="mt-4 card p-3">
                     <div class="text-xs text-slate-500">Connecté</div>
                     <div class="font-semibold">{{ auth()->user()->name }}</div>
@@ -78,6 +82,9 @@ new class extends Component
                 <a class="nav-link {{ request()->routeIs('stock-transfers.*') ? 'active' : '' }}" href="{{ route('stock-transfers.create') }}" wire:navigate>
                     Transferts
                 </a>
+                <a class="nav-link {{ request()->routeIs('stock-movements.*') ? 'active' : '' }}" href="{{ route('stock-movements.index') }}" wire:navigate>
+                    Mouvements
+                </a>
                 <a class="nav-link {{ request()->routeIs('sales.*') ? 'active' : '' }}" href="{{ route('sales.index') }}" wire:navigate>
                     Ventes
                 </a>
@@ -93,6 +100,13 @@ new class extends Component
                     <div class="sidebar-title">Analyse</div>
                     <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.financial') }}" wire:navigate>
                         Rapports
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('reports.activity') ? 'active' : '' }}" href="{{ route('reports.activity') }}" wire:navigate>
+                        Journal d'activité
+                    </a>
+                    <div class="sidebar-title">Système</div>
+                    <a class="nav-link {{ request()->routeIs('system.health') ? 'active' : '' }}" href="{{ route('system.health') }}" wire:navigate>
+                        Santé système
                     </a>
                 @endif
             </nav>
@@ -118,6 +132,10 @@ new class extends Component
             <div class="flex items-center justify-between">
                 <div class="font-semibold">Navigation</div>
                 <button class="btn btn-secondary" @click="open = false">Fermer</button>
+            </div>
+            <div class="mt-3">
+                <livewire:global-search />
+                <div class="mt-2 text-xs text-slate-400">Raccourci: Alt + F</div>
             </div>
             <div class="mt-3 card p-3">
                 <div class="text-xs text-slate-500">Connecté</div>
@@ -149,6 +167,7 @@ new class extends Component
                 <div class="sidebar-title">Opérations</div>
                 <a class="nav-link {{ request()->routeIs('purchases.*') ? 'active' : '' }}" href="{{ route('purchases.index') }}" wire:navigate>Achats</a>
                 <a class="nav-link {{ request()->routeIs('stock-transfers.*') ? 'active' : '' }}" href="{{ route('stock-transfers.create') }}" wire:navigate>Transferts</a>
+                <a class="nav-link {{ request()->routeIs('stock-movements.*') ? 'active' : '' }}" href="{{ route('stock-movements.index') }}" wire:navigate>Mouvements</a>
                 <a class="nav-link {{ request()->routeIs('sales.*') ? 'active' : '' }}" href="{{ route('sales.index') }}" wire:navigate>Ventes</a>
                 <a class="nav-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}" href="{{ route('expenses.index') }}" wire:navigate>Dépenses</a>
                 @if ($isManager)
@@ -157,6 +176,9 @@ new class extends Component
                 @if ($isManager)
                     <div class="sidebar-title">Analyse</div>
                     <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.financial') }}" wire:navigate>Rapports</a>
+                    <a class="nav-link {{ request()->routeIs('reports.activity') ? 'active' : '' }}" href="{{ route('reports.activity') }}" wire:navigate>Journal d'activité</a>
+                    <div class="sidebar-title">Système</div>
+                    <a class="nav-link {{ request()->routeIs('system.health') ? 'active' : '' }}" href="{{ route('system.health') }}" wire:navigate>Santé système</a>
                 @endif
                 <div class="sidebar-title">Compte</div>
                 <a class="nav-link" href="{{ route('profile') }}" wire:navigate>Profil</a>

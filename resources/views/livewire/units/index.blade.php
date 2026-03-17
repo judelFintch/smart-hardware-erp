@@ -8,30 +8,42 @@
     </div>
 
     <div class="card overflow-hidden">
-        <table class="w-full">
-            <thead>
-                <tr class="text-left border-b">
-                    <th class="p-3">Code</th>
-                    <th class="p-3">Nom</th>
-                    <th class="p-3">Type</th>
-                    <th class="p-3">Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach ($units as $unit)
-                    <tr class="border-b">
-                        <td class="p-3">{{ strtoupper($unit->code) }}</td>
-                        <td class="p-3">{{ $unit->name }}</td>
-                        <td class="p-3">
-                            <span class="badge badge-info">{{ $unit->type }}</span>
-                        </td>
-                        <td class="p-3">
-                            <a href="{{ route('units.edit', $unit) }}" class="text-blue-600" wire:navigate>Modifier</a>
-                            <button wire:click="delete({{ $unit->id }})" class="text-red-600 ml-2" type="button">Supprimer</button>
-                        </td>
+        @if ($units->isEmpty())
+            <x-empty-state
+                title="Aucune unité"
+                description="Créez des unités pour vos articles."
+                action="Nouvelle unité"
+                :action-href="route('units.create')"
+            />
+        @else
+            <table class="w-full">
+                <thead>
+                    <tr class="text-left border-b">
+                        <th class="p-3">Code</th>
+                        <th class="p-3">Nom</th>
+                        <th class="p-3">Type</th>
+                        <th class="p-3">Actions</th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    @foreach ($units as $unit)
+                        <tr class="border-b">
+                            <td class="p-3">{{ strtoupper($unit->code) }}</td>
+                            <td class="p-3">{{ $unit->name }}</td>
+                            <td class="p-3">
+                                <span class="badge badge-info">{{ $unit->type }}</span>
+                            </td>
+                            <td class="p-3">
+                                <a href="{{ route('units.edit', $unit) }}" class="text-blue-600" wire:navigate>Modifier</a>
+                                <button wire:click="delete({{ $unit->id }})" class="text-red-600 ml-2" type="button">Supprimer</button>
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @endif
+    </div>
+    <div>
+        {{ $units->links() }}
     </div>
 </div>

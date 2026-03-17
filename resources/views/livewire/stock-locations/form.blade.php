@@ -6,7 +6,7 @@
         </div>
         <a class="btn btn-secondary" href="{{ route('stock-locations.index') }}" wire:navigate>Retour</a>
     </div>
-    <form wire:submit.prevent="save" class="section-body space-y-6">
+    <form wire:submit.prevent="save" class="section-body space-y-6" data-autosave data-autosave-key="stock-location-form-{{ $location?->id ?? 'new' }}">
         <div class="form-grid">
             <div>
                 <label class="block text-sm font-medium">Code</label>

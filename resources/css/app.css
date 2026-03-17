@@ -125,4 +125,12 @@
   .nav-link.active {
     @apply bg-slate-900 text-white;
   }
+
+  .search-item {
+    @apply flex items-center justify-between rounded-lg px-2 py-2 text-sm text-slate-700 hover:bg-slate-100;
+  }
+
+  .empty-state {
+    @apply flex flex-col items-center justify-center gap-2 py-10 text-center text-slate-400;
+  }
 }

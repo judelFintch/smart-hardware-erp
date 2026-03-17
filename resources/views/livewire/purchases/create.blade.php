@@ -28,12 +28,9 @@
             <div>
                 <label class="block text-sm font-medium">Statut</label>
                 <select wire:model.defer="status" class="input" required>
-                    <option value="commande">Commande</option>
-                    <option value="en_fabrication">En fabrication</option>
-                    <option value="livree_agence">Livrée à l'agence</option>
+                    <option value="en_cours">En cours</option>
                     <option value="en_transit">En transit</option>
                     <option value="receptionnee">Réceptionnée</option>
-                    <option value="approvisionnee">Approvisionnée</option>
                 </select>
             </div>
             <div>
@@ -98,8 +95,7 @@
                                 <option value="{{ $product->id }}">{{ $product->name }}</option>
                             @endforeach
                         </select>
-                        <input wire:model.defer="items.{{ $index }}.quantity" type="number" step="0.001" class="input" placeholder="Quantité commandée">
-                        <input wire:model.defer="items.{{ $index }}.received_quantity" type="number" step="0.001" class="input" placeholder="Quantité réceptionnée">
+                        <input wire:model.defer="items.{{ $index }}.quantity" type="number" step="0.001" class="input" placeholder="Quantité">
                         <input wire:model.defer="items.{{ $index }}.unit_price" type="number" step="0.01" class="input" placeholder="Prix unitaire">
                         <button type="button" wire:click="removeItem({{ $index }})" class="btn btn-secondary">Supprimer</button>
                     </div>

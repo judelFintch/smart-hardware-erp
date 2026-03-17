@@ -40,6 +40,8 @@ class Create extends Component
         $data = $this->validate([
             'from_location_id' => ['required', 'exists:stock_locations,id'],
             'to_location_id' => ['required', 'exists:stock_locations,id', 'different:from_location_id'],
+            'items.*.product_id' => ['nullable', 'exists:products,id'],
+            'items.*.quantity' => ['nullable', 'numeric', 'min:0.001'],
         ]);
 
         $filteredItems = array_values(array_filter($this->items, function ($item) {
@@ -95,7 +97,7 @@ class Create extends Component
             }
         });
 
-        $this->redirectRoute('dashboard');
+        $this->redirectRoute('stock-movements.index');
     }
 
     public function render()
