@@ -32,12 +32,12 @@ class DemoDataSeeder extends Seeder
 
         $pcs = Unit::where('code', 'pcs')->first();
         $kg = Unit::where('code', 'kg')->first();
-        $l = Unit::where('code', 'l')->first();
+        $m = Unit::where('code', 'm')->first();
 
         $products = [
             ['sku' => 'ART-001', 'name' => 'Marteau', 'unit_id' => $pcs?->id, 'sale_margin_percent' => 20],
             ['sku' => 'ART-002', 'name' => 'Clous 1kg', 'unit_id' => $kg?->id, 'sale_margin_percent' => 15],
-            ['sku' => 'ART-003', 'name' => 'Peinture 1L', 'unit_id' => $l?->id, 'sale_margin_percent' => 25],
+            ['sku' => 'ART-003', 'name' => 'Câble 1m', 'unit_id' => $m?->id, 'sale_margin_percent' => 25],
         ];
 
         foreach ($products as $product) {

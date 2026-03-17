@@ -2,7 +2,7 @@
     <div class="flex flex-wrap items-center justify-between gap-3">
         <div>
             <h1 class="text-2xl font-semibold">Unités</h1>
-            <p class="text-sm text-slate-500">Gestion des unités (pièce, kg, litre, etc.).</p>
+            <p class="text-sm text-slate-500">Gestion des unités (pièce, kg, mètre, etc.).</p>
         </div>
         <a href="{{ route('units.create') }}" class="btn btn-primary" wire:navigate>Nouvelle unité</a>
     </div>

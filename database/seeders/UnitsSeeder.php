@@ -9,11 +9,11 @@ class UnitsSeeder extends Seeder
 {
     public function run(): void
     {
+        Unit::whereIn('code', ['g', 'l'])->delete();
+
         $units = [
             ['code' => 'pcs', 'name' => 'Pièce', 'type' => 'piece'],
             ['code' => 'kg', 'name' => 'Kilogramme', 'type' => 'weight'],
-            ['code' => 'g', 'name' => 'Gramme', 'type' => 'weight'],
-            ['code' => 'l', 'name' => 'Litre', 'type' => 'volume'],
             ['code' => 'm', 'name' => 'Mètre', 'type' => 'other'],
         ];
 
