@@ -40,9 +40,11 @@ new class extends Component
 
             <nav class="flex-1 px-4 py-6 space-y-1">
                 <div class="sidebar-title">Vue</div>
-                <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}" wire:navigate>
-                    Dashboard
-                </a>
+                @if ($isManager)
+                    <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}" wire:navigate>
+                        Dashboard
+                    </a>
+                @endif
 
                 <div class="sidebar-title">Catalogue</div>
                 <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}" wire:navigate>
@@ -127,7 +129,9 @@ new class extends Component
         </div>
             <nav class="px-4 py-4 space-y-1">
                 <div class="sidebar-title">Vue</div>
-                <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}" wire:navigate>Dashboard</a>
+                @if ($isManager)
+                    <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}" wire:navigate>Dashboard</a>
+                @endif
 
                 <div class="sidebar-title">Catalogue</div>
                 <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}" wire:navigate>Articles</a>

@@ -30,11 +30,20 @@ use App\Livewire\Company\Settings as CompanySettings;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('dashboard');
+    if (auth()->check()) {
+        $role = auth()->user()->role;
+        if (in_array($role, ['owner', 'manager'], true)) {
+            return redirect()->route('dashboard');
+        }
+
+        return redirect()->route('sales.index');
+    }
+
+    return redirect()->route('login');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('dashboard', Dashboard::class)->name('dashboard');
+    Route::get('dashboard', Dashboard::class)->middleware('role:owner,manager')->name('dashboard');
     Route::get('products', ProductsIndex::class)->name('products.index');
     Route::get('products/create', ProductsForm::class)->middleware('role:owner,manager')->name('products.create');
     Route::get('products/{product}/edit', ProductsForm::class)->middleware('role:owner,manager')->name('products.edit');
