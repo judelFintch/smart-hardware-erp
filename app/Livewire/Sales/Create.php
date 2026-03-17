@@ -49,6 +49,9 @@ class Create extends Component
             'type' => ['required', 'in:cash,credit'],
             'customer_id' => ['nullable', 'required_if:type,credit', 'exists:customers,id'],
             'sold_at' => ['nullable', 'date'],
+            'items.*.product_id' => ['nullable', 'exists:products,id'],
+            'items.*.quantity' => ['nullable', 'numeric', 'min:0.001'],
+            'items.*.discount_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         if (count($filteredItems) === 0) {
@@ -92,13 +95,7 @@ class Create extends Component
             foreach ($filteredItems as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 $quantity = (float) $item['quantity'];
-                $unitPrice = (float) $product->sale_price_local;
                 $discount = (float) ($item['discount_amount'] ?? 0);
-
-                $maxDiscount = $unitPrice * $quantity;
-                if ($discount > $maxDiscount) {
-                    $discount = $maxDiscount;
-                }
 
                 $balance = StockBalance::where('product_id', $product->id)
                     ->where('location_id', $magasin->id)
@@ -111,6 +108,15 @@ class Create extends Component
                 }
 
                 $unitCost = $balance?->avg_cost_local ?? $product->avg_cost_local;
+                $unitPrice = $this->resolveSalePrice($product, $balance);
+                if ($unitPrice > 0 && (float) $product->sale_price_local <= 0) {
+                    $product->update(['sale_price_local' => $unitPrice]);
+                }
+
+                $maxDiscount = $unitPrice * $quantity;
+                if ($discount > $maxDiscount) {
+                    $discount = $maxDiscount;
+                }
                 $lineTotal = ($unitPrice * $quantity) - $discount;
 
                 SaleItem::create([
@@ -157,6 +163,26 @@ class Create extends Component
         });
 
         $this->redirectRoute('sales.index');
+    }
+
+    private function resolveSalePrice(Product $product, ?StockBalance $balance): float
+    {
+        $price = (float) $product->sale_price_local;
+        if ($price > 0) {
+            return $price;
+        }
+
+        $baseCost = (float) ($balance?->avg_cost_local ?? $product->avg_cost_local);
+        if ($baseCost <= 0) {
+            return 0;
+        }
+
+        $margin = (float) ($product->sale_margin_percent ?? 0);
+        if ($margin <= 0) {
+            return $baseCost;
+        }
+
+        return $baseCost * (1 + ($margin / 100));
     }
 
     public function render()

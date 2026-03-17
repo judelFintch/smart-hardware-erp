@@ -1,5 +1,8 @@
 <div>
-    <h1 class="text-2xl font-semibold mb-4">Vente #{{ $sale->id }}</h1>
+    <div class="flex items-center justify-between mb-4">
+        <h1 class="text-2xl font-semibold">Vente #{{ $sale->id }}</h1>
+        <a class="btn btn-secondary" href="{{ route('sales.print', $sale) }}" target="_blank" rel="noopener">Imprimer facture</a>
+    </div>
 
     <div class="bg-white shadow rounded p-4 mb-4">
         <p><strong>Client:</strong> {{ $sale->customer?->name ?? '—' }}</p>

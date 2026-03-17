@@ -15,6 +15,8 @@ use App\Livewire\Reports\Financial as ReportsFinancial;
 use App\Livewire\Sales\Create as SalesCreate;
 use App\Livewire\Sales\Index as SalesIndex;
 use App\Livewire\Sales\Show as SalesShow;
+use App\Models\CompanySetting;
+use App\Models\Sale;
 use App\Livewire\StockLocations\Form as StockLocationsForm;
 use App\Livewire\StockLocations\Index as StockLocationsIndex;
 use App\Livewire\StockTransfers\Create as StockTransfersCreate;
@@ -71,6 +73,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('sales', SalesIndex::class)->name('sales.index');
     Route::get('sales/create', SalesCreate::class)->name('sales.create');
     Route::get('sales/{sale}', SalesShow::class)->name('sales.show');
+    Route::get('sales/{sale}/print', function (Sale $sale) {
+        $company = CompanySetting::first();
+        $sale->load(['customer', 'items.product']);
+
+        return view('sales.print', compact('sale', 'company'));
+    })->name('sales.print');
 
     Route::get('inventory-counts/create', InventoryCountsCreate::class)->name('inventory-counts.create');
 
