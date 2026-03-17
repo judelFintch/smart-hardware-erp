@@ -9,24 +9,41 @@
     </div>
 
     <h2 class="text-lg font-semibold mb-2">Articles</h2>
-    <table class="w-full bg-white shadow rounded mb-6">
-        <thead>
-            <tr class="text-left border-b">
-                <th class="p-2">Article</th>
-                <th class="p-2">Quantité</th>
-                <th class="p-2">Coût unitaire</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach ($purchaseOrder->items as $item)
-                <tr class="border-b">
-                    <td class="p-2">{{ $item->product->name }}</td>
-                    <td class="p-2">{{ $item->quantity }}</td>
-                    <td class="p-2">{{ number_format($item->unit_cost_local, 2) }}</td>
+    <form wire:submit.prevent="receive">
+        <table class="w-full bg-white shadow rounded mb-6">
+            <thead>
+                <tr class="text-left border-b">
+                    <th class="p-2">Article</th>
+                    <th class="p-2">Quantité commandée</th>
+                    <th class="p-2">Quantité réceptionnée</th>
+                    <th class="p-2">Coût unitaire</th>
                 </tr>
-            @endforeach
-        </tbody>
-    </table>
+            </thead>
+            <tbody>
+                @foreach ($purchaseOrder->items as $item)
+                    <tr class="border-b">
+                        <td class="p-2">{{ $item->product->name }}</td>
+                        <td class="p-2">{{ $item->quantity }}</td>
+                        <td class="p-2">
+                            <input
+                                wire:model.defer="receivedQuantities.{{ $item->id }}"
+                                type="number"
+                                min="0"
+                                step="0.001"
+                                class="input"
+                                value="{{ $item->received_quantity ?? $item->quantity }}"
+                            >
+                        </td>
+                        <td class="p-2">{{ number_format($item->unit_cost_local, 2) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        @if ($purchaseOrder->status !== 'approvisionnee')
+            <button class="px-3 py-2 bg-green-600 text-white rounded" type="submit">Marquer réception & stocker</button>
+        @endif
+    </form>
 
     @if ($purchaseOrder->type === 'foreign')
         <h2 class="text-lg font-semibold mb-2">Transferts</h2>
@@ -44,7 +61,7 @@
         </form>
     @endif
 
-    @if ($purchaseOrder->status !== 'receptionnee')
+    @if ($purchaseOrder->status !== 'approvisionnee')
         <button wire:click="receive" class="px-3 py-2 bg-green-600 text-white rounded" type="button">Marquer réception & stocker</button>
     @endif
 

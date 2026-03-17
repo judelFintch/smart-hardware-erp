@@ -25,6 +25,7 @@ class Show extends Component
     public ?string $paid_at = null;
     public string $reference = '';
     public string $notes = '';
+    public array $receivedQuantities = [];
 
     #[Validate('nullable|file|max:5120|mimes:pdf,jpg,jpeg,png')]
     public $attachment;
@@ -32,6 +33,9 @@ class Show extends Component
     public function mount(PurchaseOrder $purchaseOrder): void
     {
         $this->purchaseOrder = $purchaseOrder->load(['supplier', 'items.product', 'transfers', 'attachments']);
+        foreach ($this->purchaseOrder->items as $item) {
+            $this->receivedQuantities[$item->id] = $item->received_quantity ?? $item->quantity;
+        }
     }
 
     public function addTransfer(): void
@@ -93,9 +97,9 @@ class Show extends Component
     public function receive(StockService $stockService): void
     {
         DB::transaction(function () use ($stockService) {
-            if ($this->purchaseOrder->status !== 'receptionnee') {
+            if ($this->purchaseOrder->status !== 'approvisionnee') {
                 $this->purchaseOrder->update([
-                    'status' => 'receptionnee',
+                    'status' => 'approvisionnee',
                     'received_at' => $this->purchaseOrder->received_at ?? now()->toDateString(),
                 ]);
             }
@@ -113,6 +117,14 @@ class Show extends Component
             $this->purchaseOrder->load('items.product');
 
             foreach ($this->purchaseOrder->items as $item) {
+                $receivedQuantity = isset($this->receivedQuantities[$item->id]) ? (float) $this->receivedQuantities[$item->id] : $item->quantity;
+                $receivedQuantity = max(0, $receivedQuantity);
+                $item->update(['received_quantity' => $receivedQuantity]);
+
+                if ($receivedQuantity <= 0) {
+                    continue;
+                }
+
                 $unitCost = (float) $item->unit_cost_local;
                 $unitSale = (float) $item->product->sale_price_local;
 
@@ -120,7 +132,7 @@ class Show extends Component
                     'product_id' => $item->product_id,
                     'from_location_id' => null,
                     'to_location_id' => $depot->id,
-                    'quantity' => $item->quantity,
+                    'quantity' => $receivedQuantity,
                     'unit_cost_local' => $unitCost,
                     'unit_sale_price_local' => $unitSale,
                     'type' => 'purchase_in',

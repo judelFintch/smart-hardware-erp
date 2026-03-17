@@ -16,7 +16,7 @@ class Create extends Component
 {
     public ?int $supplier_id = null;
     public string $type = 'local';
-    public string $status = 'en_cours';
+    public string $status = 'commande';
     public string $reference = '';
     public ?string $ordered_at = null;
     public ?string $in_transit_at = null;
@@ -35,15 +35,15 @@ class Create extends Component
         $this->receive_location_id = $defaultLocation?->id;
 
         $this->items = [
-            ['product_id' => null, 'quantity' => null, 'unit_price' => null],
-            ['product_id' => null, 'quantity' => null, 'unit_price' => null],
-            ['product_id' => null, 'quantity' => null, 'unit_price' => null],
+            ['product_id' => null, 'quantity' => null, 'received_quantity' => null, 'unit_price' => null],
+            ['product_id' => null, 'quantity' => null, 'received_quantity' => null, 'unit_price' => null],
+            ['product_id' => null, 'quantity' => null, 'received_quantity' => null, 'unit_price' => null],
         ];
     }
 
     public function addItem(): void
     {
-        $this->items[] = ['product_id' => null, 'quantity' => null, 'unit_price' => null];
+        $this->items[] = ['product_id' => null, 'quantity' => null, 'received_quantity' => null, 'unit_price' => null];
     }
 
     public function removeItem(int $index): void
@@ -61,7 +61,7 @@ class Create extends Component
         $data = $this->validate([
             'supplier_id' => ['required', 'exists:suppliers,id'],
             'type' => ['required', 'in:local,foreign'],
-            'status' => ['required', 'in:en_cours,en_transit,receptionnee'],
+            'status' => ['required', 'in:commande,en_cours,en_fabrication,livree_agence,en_transit,receptionnee,approvisionnee'],
             'reference' => ['nullable', 'string', 'max:255'],
             'ordered_at' => ['nullable', 'date'],
             'in_transit_at' => ['nullable', 'date'],
@@ -71,7 +71,11 @@ class Create extends Component
             'accessory_fees_local' => ['nullable', 'numeric', 'min:0'],
             'transport_fees_local' => ['nullable', 'numeric', 'min:0'],
             'notes' => ['nullable', 'string'],
-            'receive_location_id' => ['required_if:status,receptionnee', 'nullable', 'exists:stock_locations,id'],
+            'receive_location_id' => ['required_if:status,receptionnee,approvisionnee', 'nullable', 'exists:stock_locations,id'],
+            'items.*.product_id' => ['nullable', 'exists:products,id'],
+            'items.*.quantity' => ['nullable', 'numeric', 'min:0.001'],
+            'items.*.received_quantity' => ['nullable', 'numeric', 'min:0'],
+            'items.*.unit_price' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         if (count($filteredItems) === 0) {
@@ -117,10 +121,16 @@ class Create extends Component
                 $subtotalLocal += $lineLocal;
                 $totalQty += $qty;
 
+                $receivedQty = isset($item['received_quantity']) && is_numeric($item['received_quantity']) ? (float) $item['received_quantity'] : $qty;
+                if ($receivedQty <= 0) {
+                    $receivedQty = $qty;
+                }
+
                 PurchaseOrderItem::create([
                     'purchase_order_id' => $purchase->id,
                     'product_id' => $item['product_id'],
                     'quantity' => $qty,
+                    'received_quantity' => $receivedQty,
                     'unit_price_foreign' => $data['type'] === 'foreign' ? $unitPrice : 0,
                     'unit_price_local' => $data['type'] === 'foreign' ? $unitPrice * (float) $data['exchange_rate'] : $unitPrice,
                     'line_total_foreign' => $lineForeign,
@@ -141,7 +151,7 @@ class Create extends Component
 
             $this->allocateCostToItems($purchase, $accessoryFees + $transportFees, $totalQty);
 
-            if ($purchase->status === 'receptionnee') {
+            if (in_array($purchase->status, ['receptionnee', 'approvisionnee'], true)) {
                 $this->receivePurchase($purchase, $stockService, $data['receive_location_id'] ?? null);
             }
         });
@@ -168,12 +178,17 @@ class Create extends Component
         foreach ($purchase->items as $item) {
             $unitCost = (float) $item->unit_cost_local;
             $unitSale = (float) $item->product->sale_price_local;
+            $qty = max(0, (float) ($item->received_quantity ?: $item->quantity));
+
+            if ($qty <= 0) {
+                continue;
+            }
 
             $stockService->recordMovement([
                 'product_id' => $item->product_id,
                 'from_location_id' => null,
                 'to_location_id' => $destination->id,
-                'quantity' => $item->quantity,
+                'quantity' => $qty,
                 'unit_cost_local' => $unitCost,
                 'unit_sale_price_local' => $unitSale,
                 'type' => 'purchase_in',
@@ -182,6 +197,11 @@ class Create extends Component
                 'occurred_at' => $purchase->received_at ?? now(),
             ]);
         }
+
+        $purchase->update([
+            'status' => 'approvisionnee',
+            'received_at' => $purchase->received_at ?? now()->toDateString(),
+        ]);
     }
 
     private function allocateCostToItems(PurchaseOrder $purchase, float $extraFees, float $totalQty): void

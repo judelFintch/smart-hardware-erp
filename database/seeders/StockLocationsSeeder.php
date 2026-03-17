@@ -18,5 +18,10 @@ class StockLocationsSeeder extends Seeder
             ['code' => 'magasin'],
             ['name' => 'Magasin']
         );
+
+        StockLocation::firstOrCreate(
+            ['code' => 'commande'],
+            ['name' => 'Commande']
+        );
     }
 }
