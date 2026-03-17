@@ -84,9 +84,11 @@ new class extends Component
                 <a class="nav-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}" href="{{ route('expenses.index') }}" wire:navigate>
                     Dépenses
                 </a>
-                <a class="nav-link {{ request()->routeIs('inventory-counts.*') ? 'active' : '' }}" href="{{ route('inventory-counts.create') }}" wire:navigate>
-                    Inventaire
-                </a>
+                @if ($isManager)
+                    <a class="nav-link {{ request()->routeIs('inventory-counts.*') ? 'active' : '' }}" href="{{ route('inventory-counts.index') }}" wire:navigate>
+                        Inventaire
+                    </a>
+                @endif
                 @if ($isManager)
                     <div class="sidebar-title">Analyse</div>
                     <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.financial') }}" wire:navigate>
@@ -149,7 +151,9 @@ new class extends Component
                 <a class="nav-link {{ request()->routeIs('stock-transfers.*') ? 'active' : '' }}" href="{{ route('stock-transfers.create') }}" wire:navigate>Transferts</a>
                 <a class="nav-link {{ request()->routeIs('sales.*') ? 'active' : '' }}" href="{{ route('sales.index') }}" wire:navigate>Ventes</a>
                 <a class="nav-link {{ request()->routeIs('expenses.*') ? 'active' : '' }}" href="{{ route('expenses.index') }}" wire:navigate>Dépenses</a>
-                <a class="nav-link {{ request()->routeIs('inventory-counts.*') ? 'active' : '' }}" href="{{ route('inventory-counts.create') }}" wire:navigate>Inventaire</a>
+                @if ($isManager)
+                    <a class="nav-link {{ request()->routeIs('inventory-counts.*') ? 'active' : '' }}" href="{{ route('inventory-counts.index') }}" wire:navigate>Inventaire</a>
+                @endif
                 @if ($isManager)
                     <div class="sidebar-title">Analyse</div>
                     <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.financial') }}" wire:navigate>Rapports</a>

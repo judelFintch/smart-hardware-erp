@@ -6,6 +6,7 @@ use App\Livewire\Dashboard;
 use App\Livewire\Expenses\Form as ExpensesForm;
 use App\Livewire\Expenses\Index as ExpensesIndex;
 use App\Livewire\InventoryCounts\Create as InventoryCountsCreate;
+use App\Livewire\InventoryCounts\Index as InventoryCountsIndex;
 use App\Livewire\Products\Form as ProductsForm;
 use App\Livewire\Products\Index as ProductsIndex;
 use App\Livewire\Purchases\Create as PurchasesCreate;
@@ -89,7 +90,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return view('sales.print', compact('sale', 'company'));
     })->name('sales.print');
 
-    Route::get('inventory-counts/create', InventoryCountsCreate::class)->name('inventory-counts.create');
+    Route::get('inventory-counts', InventoryCountsIndex::class)->middleware('role:owner,manager')->name('inventory-counts.index');
+    Route::get('inventory-counts/create', InventoryCountsCreate::class)->middleware('role:owner,manager')->name('inventory-counts.create');
 
     Route::get('reports/financial', ReportsFinancial::class)->middleware('role:owner,manager')->name('reports.financial');
 
