@@ -40,8 +40,9 @@
                             <td class="p-2">{{ $purchase->type }}</td>
                             <td class="p-2">{{ $purchase->status }}</td>
                             <td class="p-2">{{ number_format($purchase->total_cost_local, 2) }}</td>
-                            <td class="p-2">
+                            <td class="p-2 flex gap-2">
                                 <a href="{{ route('purchases.show', $purchase) }}" class="text-blue-600">Voir</a>
+                                <a href="{{ route('purchases.edit', $purchase) }}" class="text-indigo-600">Modifier</a>
                             </td>
                         </tr>
                     @endforeach

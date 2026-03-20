@@ -1,16 +1,15 @@
 <div>
     <h1 class="text-2xl font-semibold mb-4">Achat #{{ $purchaseOrder->id }}</h1>
 
-    <div class="bg-white shadow rounded p-4 mb-4">
-        <p><strong>Fournisseur:</strong> {{ $purchaseOrder->supplier->name }}</p>
-        <p><strong>Type:</strong> {{ $purchaseOrder->type }}</p>
-        <p><strong>Statut:</strong> {{ $purchaseOrder->status }}</p>
-        <p><strong>Total:</strong> {{ number_format($purchaseOrder->total_cost_local, 2) }}</p>
-    </div>
-
-    <h2 class="text-lg font-semibold mb-2">Articles</h2>
-    <form wire:submit.prevent="receive">
-        <table class="w-full bg-white shadow rounded mb-6">
+    <div class="bg-white shadow rounded p-4 mb-4 flex justify-between items-start gap-2">
+        <div>
+            <p><strong>Fournisseur:</strong> {{ $purchaseOrder->supplier->name }}</p>
+            <p><strong>Type:</strong> {{ $purchaseOrder->type }}</p>
+            <p><strong>Statut:</strong> {{ $purchaseOrder->status }}</p>
+            <p><strong>Total:</strong> {{ number_format($purchaseOrder->total_cost_local, 2) }}</p>
+        </div>
+        <div class="flex flex-col gap-2">
+            <a href="{{ route('purchases.print', $purchaseOrder) }}" class="btn btn-secondary" target="_blank">Imprimer PDF</a>
             <thead>
                 <tr class="text-left border-b">
                     <th class="p-2">Article</th>

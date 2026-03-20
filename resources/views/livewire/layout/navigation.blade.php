@@ -17,29 +17,10 @@ new class extends Component
 @endphp
 
 <div>
-    <aside class="hidden lg:flex lg:fixed lg:inset-y-0 lg:w-64 bg-white border-r border-slate-200">
-        <div class="flex flex-col w-full">
-            <div class="px-6 py-5 border-b border-slate-100">
-                <div class="flex items-center gap-3">
-                    <div class="h-10 w-10 rounded-xl bg-slate-900 text-white grid place-items-center font-semibold">Q</div>
-                    <div>
-                        <div class="text-sm uppercase tracking-[0.2em] text-slate-400">Quincaillerie</div>
-                        <div class="text-lg font-semibold">Stock Manager</div>
-                    </div>
-                </div>
-                <div class="mt-4">
-                    <livewire:global-search />
-                    <div class="mt-2 text-xs text-slate-400">Raccourci: Alt + F</div>
-                </div>
-                <div class="mt-4 card p-3">
-                    <div class="text-xs text-slate-500">Connecté</div>
-                    <div class="font-semibold">{{ auth()->user()->name }}</div>
-                    <div class="text-xs text-slate-400">{{ auth()->user()->email }}</div>
-                    <div class="mt-3 flex items-center gap-2">
-                        <a class="btn btn-secondary" href="{{ route('profile') }}" wire:navigate>Profil</a>
-                        <button class="btn btn-primary" wire:click="logout" type="button">Déconnexion</button>
-                    </div>
-                </div>
+    <aside class="hidden lg:flex lg:fixed lg:inset-y-0 lg:w-64 bg-white border-r border-slate-200 overflow-y-auto h-screen">
+        <div class="flex flex-col w-full min-h-screen">
+            <div class="px-6 py-4 border-b border-slate-100">
+                <div class="text-xs uppercase tracking-[0.2em] text-slate-500 font-semibold">Navigation</div>
             </div>
 
             <nav class="flex-1 px-4 py-6 space-y-1">
@@ -115,37 +96,32 @@ new class extends Component
         </div>
     </aside>
 
-    <header class="lg:hidden sticky top-0 z-30 bg-white border-b border-slate-200">
-        <div class="px-4 h-14 flex items-center justify-between">
-            <div class="flex items-center gap-2">
+    <header class="sticky top-0 z-40 bg-white border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-6 h-14">
+            <div class="flex items-center gap-3">
                 <div class="h-9 w-9 rounded-lg bg-slate-900 text-white grid place-items-center font-semibold">Q</div>
-                <div class="text-sm font-semibold">Stock Manager</div>
+                <div>
+                    <div class="text-xs text-slate-500 uppercase tracking-[0.2em]">Quincaillerie</div>
+                    <div class="text-sm font-semibold">Stock Manager</div>
+                </div>
             </div>
-            <button x-data @click="$dispatch('toggle-mobile-nav')" class="btn btn-secondary">Menu</button>
+            <div class="flex items-center gap-2">
+                <a class="btn btn-secondary" href="{{ route('profile') }}" wire:navigate>Profil</a>
+                <button class="btn btn-primary" wire:click="logout" type="button">Déconnexion</button>
+                <button x-data @click="$dispatch('toggle-mobile-nav')" class="btn btn-secondary lg:hidden">Menu</button>
+            </div>
         </div>
     </header>
 
     <div x-data="{ open: false }" @toggle-mobile-nav.window="open = !open" class="lg:hidden">
         <div x-show="open" x-transition class="fixed inset-0 z-40 bg-black/40"></div>
-        <div x-show="open" x-transition class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200">
+        <div x-show="open" x-transition class="fixed inset-y-0 left-0 z-50 w-full max-w-md bg-white border-r border-slate-200 overflow-y-auto h-screen">
         <div class="px-4 py-4 border-b border-slate-100">
             <div class="flex items-center justify-between">
                 <div class="font-semibold">Navigation</div>
                 <button class="btn btn-secondary" @click="open = false">Fermer</button>
             </div>
-            <div class="mt-3">
-                <livewire:global-search />
-                <div class="mt-2 text-xs text-slate-400">Raccourci: Alt + F</div>
-            </div>
-            <div class="mt-3 card p-3">
-                <div class="text-xs text-slate-500">Connecté</div>
-                <div class="font-semibold">{{ auth()->user()->name }}</div>
-                <div class="text-xs text-slate-400">{{ auth()->user()->email }}</div>
-                <div class="mt-3 flex items-center gap-2">
-                    <a class="btn btn-secondary" href="{{ route('profile') }}" wire:navigate>Profil</a>
-                    <button class="btn btn-primary" wire:click="logout" type="button">Déconnexion</button>
-                </div>
-            </div>
+            <div class="mt-3 font-semibold text-sm">Navigation</div>
         </div>
             <nav class="px-4 py-4 space-y-1">
                 <div class="sidebar-title">Vue</div>

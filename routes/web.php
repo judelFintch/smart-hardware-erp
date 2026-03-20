@@ -12,14 +12,17 @@ use App\Livewire\Products\Form as ProductsForm;
 use App\Livewire\Products\Index as ProductsIndex;
 use App\Livewire\Products\StockCard as ProductsStockCard;
 use App\Livewire\Purchases\Create as PurchasesCreate;
+use App\Livewire\Purchases\Edit as PurchasesEdit;
 use App\Livewire\Purchases\Index as PurchasesIndex;
 use App\Livewire\Purchases\Show as PurchasesShow;
+use App\Models\CompanySetting;
+use App\Models\PurchaseOrder;
+use App\Models\Sale;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Livewire\Reports\Financial as ReportsFinancial;
 use App\Livewire\Sales\Create as SalesCreate;
 use App\Livewire\Sales\Index as SalesIndex;
 use App\Livewire\Sales\Show as SalesShow;
-use App\Models\CompanySetting;
-use App\Models\Sale;
 use App\Livewire\StockMovements\Index as StockMovementsIndex;
 use App\Livewire\StockLocations\Form as StockLocationsForm;
 use App\Livewire\StockLocations\Index as StockLocationsIndex;
@@ -47,6 +50,7 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', Dashboard::class)->middleware('role:owner,manager')->name('dashboard');
     Route::get('products', ProductsIndex::class)->name('products.index');
@@ -68,7 +72,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('purchases', PurchasesIndex::class)->name('purchases.index');
     Route::get('purchases/create', PurchasesCreate::class)->name('purchases.create');
+    Route::get('purchases/{purchaseOrder}/print', function (PurchaseOrder $purchaseOrder) {
+        $company = CompanySetting::first();
+        $purchaseOrder->load(['supplier', 'items.product']);
+
+        $pdf = Pdf::loadView('exports.purchase-order', compact('company', 'purchaseOrder'));
+
+        return response()->streamDownload(fn () => print($pdf->output()), "bon-de-commande-{$purchaseOrder->id}.pdf");
+    })->name('purchases.print');
+
     Route::get('purchases/{purchaseOrder}', PurchasesShow::class)->name('purchases.show');
+    Route::get('purchases/{purchaseOrder}/edit', PurchasesEdit::class)->name('purchases.edit');
 
     Route::get('stock-transfers/create', StockTransfersCreate::class)->name('stock-transfers.create');
     Route::get('stock-movements', StockMovementsIndex::class)->name('stock-movements.index');
