@@ -26,6 +26,16 @@
                 @error('customer_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
             <div>
+                <label class="block text-sm font-medium">Magasin de vente</label>
+                <select wire:model.defer="location_id" class="input" required>
+                    <option value="">-- Choisir --</option>
+                    @foreach ($locations as $location)
+                        <option value="{{ $location->id }}">{{ $location->name }} ({{ $location->code }})</option>
+                    @endforeach
+                </select>
+                @error('location_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+            </div>
+            <div>
                 <label class="block text-sm font-medium">Date</label>
                 <input wire:model.defer="sold_at" type="datetime-local" class="input">
             </div>

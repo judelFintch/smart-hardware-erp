@@ -16,11 +16,15 @@ class Create extends Component
 {
     public string $type = 'cash';
     public ?int $customer_id = null;
+    public ?int $location_id = null;
     public ?string $sold_at = null;
     public array $items = [];
 
     public function mount(): void
     {
+        $defaultLocation = StockLocation::where('code', 'magasin')->first();
+        $this->location_id = $defaultLocation?->id;
+
         $this->items = [
             ['product_id' => null, 'quantity' => null, 'discount_amount' => 0],
             ['product_id' => null, 'quantity' => null, 'discount_amount' => 0],
@@ -48,6 +52,7 @@ class Create extends Component
         $data = $this->validate([
             'type' => ['required', 'in:cash,credit'],
             'customer_id' => ['nullable', 'required_if:type,credit', 'exists:customers,id'],
+            'location_id' => ['required', 'exists:stock_locations,id'],
             'sold_at' => ['nullable', 'date'],
             'items.*.product_id' => ['nullable', 'exists:products,id'],
             'items.*.quantity' => ['nullable', 'numeric', 'min:0.001'],
@@ -59,23 +64,23 @@ class Create extends Component
             return;
         }
 
-        $magasin = StockLocation::where('code', 'magasin')->firstOrFail();
+        $location = StockLocation::findOrFail($data['location_id']);
         foreach ($filteredItems as $item) {
             $product = Product::findOrFail($item['product_id']);
             $quantity = (float) $item['quantity'];
 
             $balance = StockBalance::where('product_id', $product->id)
-                ->where('location_id', $magasin->id)
+                ->where('location_id', $location->id)
                 ->first();
 
             $available = (float) ($balance?->quantity ?? 0);
             if ($available < $quantity) {
-                $this->addError('items', "Stock insuffisant pour {$product->name} (disponible: {$available}).");
+                $this->addError('items', "Stock insuffisant pour {$product->name} dans {$location->name} (disponible: {$available}).");
                 return;
             }
         }
 
-        DB::transaction(function () use ($data, $filteredItems, $stockService) {
+        DB::transaction(function () use ($data, $filteredItems, $stockService, $location) {
             $sale = Sale::create([
                 'customer_id' => $data['customer_id'] ?? null,
                 'type' => $data['type'],
@@ -87,8 +92,6 @@ class Create extends Component
                 'sold_at' => $data['sold_at'] ?? now(),
             ]);
 
-            $magasin = StockLocation::where('code', 'magasin')->firstOrFail();
-
             $subtotal = 0;
             $discountTotal = 0;
 
@@ -98,12 +101,12 @@ class Create extends Component
                 $discount = (float) ($item['discount_amount'] ?? 0);
 
                 $balance = StockBalance::where('product_id', $product->id)
-                    ->where('location_id', $magasin->id)
+                    ->where('location_id', $location->id)
                     ->first();
 
                 $available = (float) ($balance?->quantity ?? 0);
                 if ($available < $quantity) {
-                    $this->addError('items', "Stock insuffisant pour {$product->name} (disponible: {$available}).");
+                    $this->addError('items', "Stock insuffisant pour {$product->name} dans {$location->name} (disponible: {$available}).");
                     continue;
                 }
 
@@ -122,7 +125,7 @@ class Create extends Component
                 SaleItem::create([
                     'sale_id' => $sale->id,
                     'product_id' => $product->id,
-                    'location_id' => $magasin->id,
+                    'location_id' => $location->id,
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
                     'unit_cost_local' => $unitCost,
@@ -132,7 +135,7 @@ class Create extends Component
 
                 $stockService->recordMovement([
                     'product_id' => $product->id,
-                    'from_location_id' => $magasin->id,
+                    'from_location_id' => $location->id,
                     'to_location_id' => null,
                     'quantity' => $quantity,
                     'unit_cost_local' => $unitCost,
@@ -188,9 +191,10 @@ class Create extends Component
     public function render()
     {
         $customers = Customer::orderBy('name')->get();
+        $locations = StockLocation::orderBy('name')->get();
         $products = Product::orderBy('name')->get();
 
-        return view('livewire.sales.create', compact('customers', 'products'))
+        return view('livewire.sales.create', compact('customers', 'locations', 'products'))
             ->layout('layouts.app');
     }
 }
