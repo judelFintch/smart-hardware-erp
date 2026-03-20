@@ -25,9 +25,11 @@
             <div class="mt-2 text-sm text-slate-500">Nombre total de références disponibles.</div>
         </div>
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Stock global</div>
+            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Stock affiché</div>
             <div class="mt-3 text-3xl font-semibold text-slate-900">{{ number_format($stats['stock_total'], 3) }}</div>
-            <div class="mt-2 text-sm text-slate-500">Quantité cumulée sur tous les dépôts et magasins.</div>
+            <div class="mt-2 text-sm text-slate-500">
+                {{ $selectedLocation ? 'Quantité cumulée pour ' . $selectedLocation->name . '.' : 'Quantité cumulée sur tous les dépôts et magasins.' }}
+            </div>
         </div>
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Stock critique</div>
@@ -37,7 +39,7 @@
     </div>
 
     <div class="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm">
-        <div class="grid gap-3 lg:grid-cols-[1.3fr_auto] lg:items-center">
+        <div class="grid gap-3 lg:grid-cols-[1fr_0.8fr_auto] lg:items-center">
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Recherche</label>
                 <input
@@ -45,6 +47,15 @@
                     class="input mt-2"
                     placeholder="Nom, SKU ou code-barres"
                 >
+            </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Entité</label>
+                <select wire:model.live="location_id" class="input mt-2">
+                    <option value="">Toutes les entités</option>
+                    @foreach ($locations as $location)
+                        <option value="{{ $location->id }}">{{ $location->name }} ({{ $location->code }})</option>
+                    @endforeach
+                </select>
             </div>
             <div class="text-sm text-slate-500 lg:text-right">
                 {{ $products->total() }} article(s) trouvé(s)
@@ -78,7 +89,7 @@
                     <tbody class="divide-y divide-slate-100">
                         @foreach ($products as $product)
                             @php
-                                $stock = (float) ($product->stock_balances_sum_quantity ?? 0);
+                                $stock = (float) ($product->filtered_stock_quantity ?? 0);
                                 $isLowStock = $stock <= (float) $product->reorder_level;
                             @endphp
                             <tr class="hover:bg-slate-50/70">

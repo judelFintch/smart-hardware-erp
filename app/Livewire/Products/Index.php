@@ -4,6 +4,7 @@ namespace App\Livewire\Products;
 
 use App\Models\Product;
 use App\Models\StockBalance;
+use App\Models\StockLocation;
 use App\Models\Unit;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -16,9 +17,15 @@ class Index extends Component
 
     public $importFile;
     public string $search = '';
+    public ?int $location_id = null;
     public int $perPage = 15;
 
     public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
+
+    public function updatingLocationId(): void
     {
         $this->resetPage();
     }
@@ -84,9 +91,17 @@ class Index extends Component
 
     public function render()
     {
+        $selectedLocationId = $this->location_id;
+
         $products = Product::query()
             ->with('unit')
-            ->withSum('stockBalances', 'quantity')
+            ->withSum([
+                'stockBalances as filtered_stock_quantity' => function ($query) use ($selectedLocationId) {
+                    if ($selectedLocationId) {
+                        $query->where('location_id', $selectedLocationId);
+                    }
+                },
+            ], 'quantity')
             ->when($this->search !== '', function ($query) {
                 $like = '%' . trim($this->search) . '%';
 
@@ -99,17 +114,31 @@ class Index extends Component
             ->orderBy('name')
             ->paginate($this->perPage);
 
+        $stockBalanceQuery = StockBalance::query();
+        if ($selectedLocationId) {
+            $stockBalanceQuery->where('location_id', $selectedLocationId);
+        }
+
         $stats = [
             'products_count' => Product::count(),
-            'stock_total' => (float) StockBalance::sum('quantity'),
+            'stock_total' => (float) $stockBalanceQuery->sum('quantity'),
             'low_stock_count' => Product::query()
-                ->withSum('stockBalances', 'quantity')
+                ->withSum([
+                    'stockBalances as filtered_stock_quantity' => function ($query) use ($selectedLocationId) {
+                        if ($selectedLocationId) {
+                            $query->where('location_id', $selectedLocationId);
+                        }
+                    },
+                ], 'quantity')
                 ->get()
-                ->filter(fn (Product $product) => (float) ($product->stock_balances_sum_quantity ?? 0) <= (float) $product->reorder_level)
+                ->filter(fn (Product $product) => (float) ($product->filtered_stock_quantity ?? 0) <= (float) $product->reorder_level)
                 ->count(),
         ];
 
-        return view('livewire.products.index', compact('products', 'stats'))
+        $locations = StockLocation::orderBy('name')->get();
+        $selectedLocation = $locations->firstWhere('id', $selectedLocationId);
+
+        return view('livewire.products.index', compact('products', 'stats', 'locations', 'selectedLocation'))
             ->layout('layouts.app');
     }
 }
