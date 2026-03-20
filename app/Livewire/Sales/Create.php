@@ -18,6 +18,7 @@ class Create extends Component
     public ?int $customer_id = null;
     public ?int $location_id = null;
     public ?string $sold_at = null;
+    public float $global_discount_amount = 0;
     public array $items = [];
 
     public function mount(): void
@@ -26,15 +27,15 @@ class Create extends Component
         $this->location_id = $defaultLocation?->id;
 
         $this->items = [
-            ['product_id' => null, 'quantity' => null, 'discount_amount' => 0],
-            ['product_id' => null, 'quantity' => null, 'discount_amount' => 0],
-            ['product_id' => null, 'quantity' => null, 'discount_amount' => 0],
+            ['product_id' => null, 'quantity' => null],
+            ['product_id' => null, 'quantity' => null],
+            ['product_id' => null, 'quantity' => null],
         ];
     }
 
     public function addItem(): void
     {
-        $this->items[] = ['product_id' => null, 'quantity' => null, 'discount_amount' => 0];
+        $this->items[] = ['product_id' => null, 'quantity' => null];
     }
 
     public function removeItem(int $index): void
@@ -75,10 +76,19 @@ class Create extends Component
     public function getItemLineTotal(array $item): float
     {
         $quantity = (float) ($item['quantity'] ?? 0);
-        $discount = (float) ($item['discount_amount'] ?? 0);
         $unitPrice = $this->getItemUnitPrice(isset($item['product_id']) ? (int) $item['product_id'] : null);
 
-        return max(0, ($unitPrice * $quantity) - $discount);
+        return max(0, $unitPrice * $quantity);
+    }
+
+    public function getSubtotalPreview(): float
+    {
+        return collect($this->items)->sum(fn (array $item) => $this->getItemLineTotal($item));
+    }
+
+    public function getTotalPreview(): float
+    {
+        return max(0, $this->getSubtotalPreview() - (float) $this->global_discount_amount);
     }
 
     public function save(StockService $stockService): void
@@ -92,9 +102,9 @@ class Create extends Component
             'customer_id' => ['nullable', 'required_if:type,credit', 'exists:customers,id'],
             'location_id' => ['required', 'exists:stock_locations,id'],
             'sold_at' => ['nullable', 'date'],
+            'global_discount_amount' => ['nullable', 'numeric', 'min:0'],
             'items.*.product_id' => ['nullable', 'exists:products,id'],
             'items.*.quantity' => ['nullable', 'numeric', 'min:0.001'],
-            'items.*.discount_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         if (count($filteredItems) === 0) {
@@ -136,7 +146,6 @@ class Create extends Component
             foreach ($filteredItems as $item) {
                 $product = Product::findOrFail($item['product_id']);
                 $quantity = (float) $item['quantity'];
-                $discount = (float) ($item['discount_amount'] ?? 0);
 
                 $balance = StockBalance::where('product_id', $product->id)
                     ->where('location_id', $location->id)
@@ -154,11 +163,7 @@ class Create extends Component
                     $product->update(['sale_price_local' => $unitPrice]);
                 }
 
-                $maxDiscount = $unitPrice * $quantity;
-                if ($discount > $maxDiscount) {
-                    $discount = $maxDiscount;
-                }
-                $lineTotal = ($unitPrice * $quantity) - $discount;
+                $lineTotal = $unitPrice * $quantity;
 
                 SaleItem::create([
                     'sale_id' => $sale->id,
@@ -167,7 +172,7 @@ class Create extends Component
                     'quantity' => $quantity,
                     'unit_price' => $unitPrice,
                     'unit_cost_local' => $unitCost,
-                    'discount_amount' => $discount,
+                    'discount_amount' => 0,
                     'line_total' => $lineTotal,
                 ]);
 
@@ -185,10 +190,10 @@ class Create extends Component
                 ]);
 
                 $subtotal += $unitPrice * $quantity;
-                $discountTotal += $discount;
             }
 
-            $total = $subtotal - $discountTotal;
+            $discountTotal = min((float) ($data['global_discount_amount'] ?? 0), $subtotal);
+            $total = max(0, $subtotal - $discountTotal);
 
             $update = [
                 'subtotal' => $subtotal,

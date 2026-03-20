@@ -107,8 +107,8 @@ class Show extends Component
 
             $this->sale->refresh();
             $subtotal = (float) $this->sale->items()->sum(DB::raw('unit_price * quantity'));
-            $discountTotal = (float) $this->sale->items()->sum('discount_amount');
-            $total = $subtotal - $discountTotal;
+            $discountTotal = min((float) $this->sale->discount_total, max(0, $subtotal));
+            $total = max(0, $subtotal - $discountTotal);
 
             $status = $this->sale->type === 'credit' && $this->sale->paid_total < $total ? 'open' : 'paid';
 

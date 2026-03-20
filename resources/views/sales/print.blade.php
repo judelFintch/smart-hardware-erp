@@ -60,6 +60,8 @@
             </table>
 
             <div class="totals">
+                <div class="row"><span>Sous-total</span><span>{{ number_format($sale->subtotal, 2) }}</span></div>
+                <div class="row"><span>Remise globale</span><span>{{ number_format($sale->discount_total, 2) }}</span></div>
                 <div class="row"><strong>Total</strong><strong>{{ number_format($sale->total_amount, 2) }}</strong></div>
                 <div class="row"><span>Payé</span><span>{{ number_format($sale->paid_total, 2) }}</span></div>
                 <div class="row"><span>Statut</span><span>{{ $sale->status }}</span></div>

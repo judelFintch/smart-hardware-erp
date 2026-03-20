@@ -8,6 +8,8 @@
         <p><strong>Client:</strong> {{ $sale->customer?->name ?? '—' }}</p>
         <p><strong>Type:</strong> {{ $sale->type }}</p>
         <p><strong>Statut:</strong> {{ $sale->status }}</p>
+        <p><strong>Sous-total:</strong> {{ number_format($sale->subtotal, 2) }}</p>
+        <p><strong>Remise globale:</strong> {{ number_format($sale->discount_total, 2) }}</p>
         <p><strong>Total:</strong> {{ number_format($sale->total_amount, 2) }}</p>
     </div>
 
@@ -18,7 +20,6 @@
                 <th class="p-2">Article</th>
                 <th class="p-2">Quantité</th>
                 <th class="p-2">Prix</th>
-                <th class="p-2">Réduction</th>
                 <th class="p-2">Total</th>
             </tr>
         </thead>
@@ -28,12 +29,17 @@
                     <td class="p-2">{{ $item->product->name }}</td>
                     <td class="p-2">{{ $item->quantity }}</td>
                     <td class="p-2">{{ number_format($item->unit_price, 2) }}</td>
-                    <td class="p-2">{{ number_format($item->discount_amount, 2) }}</td>
                     <td class="p-2">{{ number_format($item->line_total, 2) }}</td>
                 </tr>
             @endforeach
         </tbody>
     </table>
+
+    @if ((float) $sale->discount_total > 0)
+        <div class="mb-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+            Remise globale appliquée sur cette vente: <strong>{{ number_format((float) $sale->discount_total, 2) }}</strong>
+        </div>
+    @endif
 
     <h2 class="text-lg font-semibold mb-2">Retour / Échange</h2>
     <form wire:submit.prevent="returnItem" class="space-y-2 mb-6">

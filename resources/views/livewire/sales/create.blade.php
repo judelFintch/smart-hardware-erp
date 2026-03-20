@@ -44,6 +44,10 @@
                 <label class="block text-xs font-medium text-slate-600">Date</label>
                 <input wire:model.defer="sold_at" type="datetime-local" class="input">
             </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-600">Remise globale</label>
+                <input wire:model.live.debounce.300ms="global_discount_amount" type="number" step="0.01" min="0" class="input" placeholder="0.00">
+            </div>
         </div>
         </div>
 
@@ -65,7 +69,7 @@
                         $lineTotal = $this->getItemLineTotal($item);
                     @endphp
                     <div class="rounded-xl border border-slate-200 bg-slate-50/70 px-2.5 py-2">
-                        <div class="grid grid-cols-1 gap-1.5 md:grid-cols-[1.65fr_0.58fr_0.58fr_0.72fr_auto] md:items-center">
+                        <div class="grid grid-cols-1 gap-1.5 md:grid-cols-[1.75fr_0.62fr_0.72fr_auto] md:items-center">
                             <select wire:model.live="items.{{ $index }}.product_id" class="input">
                                 <option value="">-- Article --</option>
                                 @foreach ($products as $product)
@@ -73,7 +77,6 @@
                                 @endforeach
                             </select>
                             <input wire:model.live.debounce.300ms="items.{{ $index }}.quantity" type="number" step="0.001" class="input" placeholder="Qté">
-                            <input wire:model.live.debounce.300ms="items.{{ $index }}.discount_amount" type="number" step="0.01" class="input" placeholder="Réduc.">
                             <div class="rounded-lg bg-white px-2.5 py-1.5 text-right ring-1 ring-slate-200">
                                 <div class="text-[11px] uppercase tracking-[0.14em] text-slate-400">PU auto</div>
                                 <div class="font-semibold text-slate-900">{{ number_format($unitPrice, 2) }}</div>
@@ -96,7 +99,6 @@
                         <div class="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 text-xs">
                             <div class="flex flex-wrap items-center gap-3 text-slate-500">
                                 <span>Stock: <span class="font-semibold text-slate-800">{{ number_format($availableStock, 3) }}</span></span>
-                                <span>Réduction: <span class="font-semibold text-slate-800">{{ number_format((float) ($item['discount_amount'] ?? 0), 2) }}</span></span>
                             </div>
                             <div class="text-slate-500">
                                 Total ligne: <span class="font-semibold text-slate-900">{{ number_format($lineTotal, 2) }}</span>
@@ -104,6 +106,13 @@
                         </div>
                     </div>
                 @endforeach
+            </div>
+            <div class="border-t border-slate-100 bg-slate-50/70 px-3 py-2">
+                <div class="flex flex-wrap items-center justify-end gap-x-5 gap-y-1 text-xs text-slate-600">
+                    <span>Sous-total: <span class="font-semibold text-slate-900">{{ number_format($this->getSubtotalPreview(), 2) }}</span></span>
+                    <span>Remise globale: <span class="font-semibold text-slate-900">{{ number_format((float) $global_discount_amount, 2) }}</span></span>
+                    <span>Total net: <span class="font-semibold text-slate-900">{{ number_format($this->getTotalPreview(), 2) }}</span></span>
+                </div>
             </div>
         </div>
 
