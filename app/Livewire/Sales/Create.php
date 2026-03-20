@@ -43,6 +43,44 @@ class Create extends Component
         $this->items = array_values($this->items);
     }
 
+    public function getItemUnitPrice(?int $productId): float
+    {
+        if (!$productId) {
+            return 0;
+        }
+
+        $product = Product::find($productId);
+        if (!$product) {
+            return 0;
+        }
+
+        $balance = $this->location_id
+            ? StockBalance::where('product_id', $product->id)->where('location_id', $this->location_id)->first()
+            : null;
+
+        return $this->resolveSalePrice($product, $balance);
+    }
+
+    public function getItemAvailableStock(?int $productId): float
+    {
+        if (!$productId || !$this->location_id) {
+            return 0;
+        }
+
+        return (float) (StockBalance::where('product_id', $productId)
+            ->where('location_id', $this->location_id)
+            ->value('quantity') ?? 0);
+    }
+
+    public function getItemLineTotal(array $item): float
+    {
+        $quantity = (float) ($item['quantity'] ?? 0);
+        $discount = (float) ($item['discount_amount'] ?? 0);
+        $unitPrice = $this->getItemUnitPrice(isset($item['product_id']) ? (int) $item['product_id'] : null);
+
+        return max(0, ($unitPrice * $quantity) - $discount);
+    }
+
     public function save(StockService $stockService): void
     {
         $filteredItems = array_values(array_filter($this->items, function ($item) {

@@ -27,7 +27,7 @@
             </div>
             <div>
                 <label class="block text-sm font-medium">Magasin de vente</label>
-                <select wire:model.defer="location_id" class="input" required>
+                <select wire:model.live="location_id" class="input" required>
                     <option value="">-- Choisir --</option>
                     @foreach ($locations as $location)
                         <option value="{{ $location->id }}">{{ $location->name }} ({{ $location->code }})</option>
@@ -52,16 +52,38 @@
             <div class="card-body space-y-3">
                 @error('items') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
                 @foreach ($items as $index => $item)
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
-                        <select wire:model.defer="items.{{ $index }}.product_id" class="input">
-                            <option value="">-- Article --</option>
-                            @foreach ($products as $product)
-                                <option value="{{ $product->id }}">{{ $product->name }}</option>
-                            @endforeach
-                        </select>
-                        <input wire:model.defer="items.{{ $index }}.quantity" type="number" step="0.001" class="input" placeholder="Quantité">
-                        <input wire:model.defer="items.{{ $index }}.discount_amount" type="number" step="0.01" class="input" placeholder="Réduction">
-                        <button type="button" wire:click="removeItem({{ $index }})" class="btn btn-secondary">Supprimer</button>
+                    @php
+                        $productId = isset($item['product_id']) && $item['product_id'] !== '' ? (int) $item['product_id'] : null;
+                        $unitPrice = $this->getItemUnitPrice($productId);
+                        $availableStock = $this->getItemAvailableStock($productId);
+                        $lineTotal = $this->getItemLineTotal($item);
+                    @endphp
+                    <div class="rounded-2xl border border-slate-200 bg-slate-50/70 p-3">
+                        <div class="grid grid-cols-1 gap-3 md:grid-cols-[1.4fr_0.8fr_0.8fr_auto]">
+                            <select wire:model.live="items.{{ $index }}.product_id" class="input">
+                                <option value="">-- Article --</option>
+                                @foreach ($products as $product)
+                                    <option value="{{ $product->id }}">{{ $product->name }}</option>
+                                @endforeach
+                            </select>
+                            <input wire:model.live.debounce.300ms="items.{{ $index }}.quantity" type="number" step="0.001" class="input" placeholder="Quantité">
+                            <input wire:model.live.debounce.300ms="items.{{ $index }}.discount_amount" type="number" step="0.01" class="input" placeholder="Réduction">
+                            <button type="button" wire:click="removeItem({{ $index }})" class="btn btn-secondary">Supprimer</button>
+                        </div>
+                        <div class="mt-3 grid gap-2 text-sm text-slate-600 md:grid-cols-3">
+                            <div class="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
+                                <div class="text-xs uppercase tracking-[0.14em] text-slate-400">Prix unitaire auto</div>
+                                <div class="mt-1 font-semibold text-slate-900">{{ number_format($unitPrice, 2) }}</div>
+                            </div>
+                            <div class="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
+                                <div class="text-xs uppercase tracking-[0.14em] text-slate-400">Stock disponible</div>
+                                <div class="mt-1 font-semibold text-slate-900">{{ number_format($availableStock, 3) }}</div>
+                            </div>
+                            <div class="rounded-xl bg-white px-3 py-2 ring-1 ring-slate-200">
+                                <div class="text-xs uppercase tracking-[0.14em] text-slate-400">Total ligne</div>
+                                <div class="mt-1 font-semibold text-slate-900">{{ number_format($lineTotal, 2) }}</div>
+                            </div>
+                        </div>
                     </div>
                 @endforeach
             </div>
