@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('sale_price_local', 15, 2)->default(0);
             $table->decimal('sale_margin_percent', 6, 2)->default(0);
             $table->boolean('is_active')->default(true);
+            $table->softDeletes();
             $table->timestamps();
         });
     }

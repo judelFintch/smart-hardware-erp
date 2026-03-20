@@ -3,6 +3,7 @@
 namespace App\Livewire\StockLocations;
 
 use App\Models\StockLocation;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Form extends Component
@@ -25,7 +26,7 @@ class Form extends Component
     public function save(): void
     {
         $data = $this->validate([
-            'code' => ['required', 'string', 'max:50', 'unique:stock_locations,code,' . ($this->location?->id ?? 'NULL')],
+            'code' => ['required', 'string', 'max:50', Rule::unique('stock_locations', 'code')->ignore($this->location?->id)->whereNull('deleted_at')],
             'name' => ['required', 'string', 'max:255'],
             'notes' => ['nullable', 'string'],
         ]);

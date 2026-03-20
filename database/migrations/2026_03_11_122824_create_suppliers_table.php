@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('address')->nullable();
             $table->enum('type', ['local', 'foreign'])->default('local');
             $table->text('notes')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

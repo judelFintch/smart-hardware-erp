@@ -4,6 +4,7 @@ namespace App\Livewire\Products;
 
 use App\Models\Product;
 use App\Models\Unit;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Form extends Component
@@ -36,8 +37,8 @@ class Form extends Component
     public function save(): void
     {
         $data = $this->validate([
-            'sku' => ['required', 'string', 'max:255', 'unique:products,sku,' . ($this->product?->id ?? 'NULL')],
-            'barcode' => ['nullable', 'string', 'max:255', 'unique:products,barcode,' . ($this->product?->id ?? 'NULL')],
+            'sku' => ['required', 'string', 'max:255', Rule::unique('products', 'sku')->ignore($this->product?->id)->whereNull('deleted_at')],
+            'barcode' => ['nullable', 'string', 'max:255', Rule::unique('products', 'barcode')->ignore($this->product?->id)->whereNull('deleted_at')],
             'name' => ['required', 'string', 'max:255'],
             'unit_id' => ['required', 'exists:units,id'],
             'description' => ['nullable', 'string'],

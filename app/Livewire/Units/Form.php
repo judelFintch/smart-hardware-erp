@@ -3,6 +3,7 @@
 namespace App\Livewire\Units;
 
 use App\Models\Unit;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Form extends Component
@@ -25,7 +26,7 @@ class Form extends Component
     public function save(): void
     {
         $data = $this->validate([
-            'code' => ['required', 'string', 'max:50', 'unique:units,code,' . ($this->unit?->id ?? 'NULL')],
+            'code' => ['required', 'string', 'max:50', Rule::unique('units', 'code')->ignore($this->unit?->id)->whereNull('deleted_at')],
             'name' => ['required', 'string', 'max:255'],
             'type' => ['required', 'in:piece,weight,volume,other'],
         ]);

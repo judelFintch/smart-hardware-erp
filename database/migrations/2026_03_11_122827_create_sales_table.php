@@ -23,6 +23,7 @@ return new class extends Migration
             $table->timestamp('sold_at')->useCurrent();
             $table->text('notes')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index(['type', 'status']);

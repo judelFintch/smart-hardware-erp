@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->string('role')->default('seller');
             $table->rememberToken();
+            $table->softDeletes();
             $table->timestamps();
         });
 

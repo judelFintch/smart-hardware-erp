@@ -16,6 +16,7 @@ return new class extends Migration
             $table->unsignedBigInteger('subject_id')->nullable();
             $table->string('description')->nullable();
             $table->json('meta')->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index(['subject_type', 'subject_id']);

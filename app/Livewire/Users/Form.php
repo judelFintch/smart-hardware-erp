@@ -4,6 +4,7 @@ namespace App\Livewire\Users;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\Rule;
 use Livewire\Component;
 
 class Form extends Component
@@ -29,7 +30,7 @@ class Form extends Component
     {
         $rules = [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', 'unique:users,email,' . ($this->user?->id ?? 'NULL')],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')->ignore($this->user?->id)->whereNull('deleted_at')],
             'role' => ['required', 'in:owner,manager,seller'],
         ];
 

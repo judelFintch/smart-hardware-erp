@@ -19,6 +19,7 @@ return new class extends Migration
             $table->date('spent_at')->nullable();
             $table->string('reference')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

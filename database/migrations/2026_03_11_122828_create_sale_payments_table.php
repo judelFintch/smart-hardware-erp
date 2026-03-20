@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('method')->nullable();
             $table->string('reference')->nullable();
             $table->text('notes')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

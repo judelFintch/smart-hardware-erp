@@ -18,6 +18,7 @@ return new class extends Migration
             $table->decimal('quantity', 15, 3)->default(0);
             $table->decimal('avg_cost_local', 15, 2)->default(0);
             $table->decimal('sale_price_local', 15, 2)->default(0);
+            $table->softDeletes();
             $table->timestamps();
 
             $table->unique(['product_id', 'location_id']);

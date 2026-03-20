@@ -21,6 +21,7 @@ return new class extends Migration
             $table->decimal('unit_cost_local', 15, 2)->default(0);
             $table->decimal('discount_amount', 15, 2)->default(0);
             $table->decimal('line_total', 15, 2)->default(0);
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index(['sale_id', 'product_id']);

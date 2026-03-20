@@ -29,6 +29,7 @@ return new class extends Migration
             $table->decimal('total_cost_local', 15, 2)->default(0);
             $table->text('notes')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index(['type', 'status']);

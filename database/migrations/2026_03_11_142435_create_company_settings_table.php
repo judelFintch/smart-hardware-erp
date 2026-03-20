@@ -19,6 +19,7 @@ return new class extends Migration
             $table->string('currency')->default('CDF');
             $table->string('logo_path')->nullable();
             $table->text('invoice_footer')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

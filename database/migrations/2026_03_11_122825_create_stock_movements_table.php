@@ -33,6 +33,7 @@ return new class extends Migration
             $table->timestamp('occurred_at')->useCurrent();
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->text('note')->nullable();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index(['product_id', 'occurred_at']);

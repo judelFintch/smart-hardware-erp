@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('attachable_type');
             $table->unsignedBigInteger('attachable_id');
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->softDeletes();
             $table->timestamps();
 
             $table->index(['attachable_type', 'attachable_id']);

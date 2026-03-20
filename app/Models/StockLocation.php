@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\PreservesUniqueValuesOnSoftDelete;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class StockLocation extends Model
 {
+    use PreservesUniqueValuesOnSoftDelete, SoftDeletes;
+
     protected $fillable = [
         'code',
         'name',
@@ -31,5 +35,10 @@ class StockLocation extends Model
     public function saleItems(): HasMany
     {
         return $this->hasMany(SaleItem::class, 'location_id');
+    }
+
+    protected function uniqueSoftDeleteColumns(): array
+    {
+        return ['code'];
     }
 }

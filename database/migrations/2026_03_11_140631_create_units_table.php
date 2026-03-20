@@ -13,6 +13,7 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->string('name');
             $table->enum('type', ['piece', 'weight', 'volume', 'other'])->default('piece');
+            $table->softDeletes();
             $table->timestamps();
         });
     }
