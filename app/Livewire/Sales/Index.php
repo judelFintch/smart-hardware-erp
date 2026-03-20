@@ -33,9 +33,17 @@ class Index extends Component
 
     public function render()
     {
-        $sales = Sale::with('customer')->orderByDesc('sold_at')->paginate($this->perPage);
+        $query = Sale::with('customer')->orderByDesc('sold_at');
+        $sales = (clone $query)->paginate($this->perPage);
 
-        return view('livewire.sales.index', compact('sales'))
+        $stats = [
+            'count' => (clone $query)->count(),
+            'revenue' => (float) ((clone $query)->sum('total_amount') ?? 0),
+            'paid' => (clone $query)->where('status', 'paid')->count(),
+            'open' => (clone $query)->where('status', 'open')->count(),
+        ];
+
+        return view('livewire.sales.index', compact('sales', 'stats'))
             ->layout('layouts.app');
     }
 }
