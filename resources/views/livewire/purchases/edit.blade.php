@@ -2,9 +2,9 @@
     <div class="section-header">
         <div>
             <div class="text-sm text-slate-500">Achats</div>
-            <div class="text-lg font-semibold">Nouvel Achat</div>
+            <div class="text-lg font-semibold">Modifier le bon d'achat #{{ $purchaseOrder->id }}</div>
         </div>
-        <a class="btn btn-secondary" href="{{ route('purchases.index') }}" wire:navigate>Retour</a>
+        <a class="btn btn-secondary" href="{{ route('purchases.show', $purchaseOrder) }}" wire:navigate>Retour</a>
     </div>
     <form wire:submit.prevent="save" class="section-body space-y-6">
         <div class="form-grid">
@@ -45,7 +45,6 @@
                         <option value="{{ $location->id }}">{{ $location->name }}</option>
                     @endforeach
                 </select>
-                @error('receive_location_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
             <div>
                 <label class="block text-sm font-medium">Référence</label>
@@ -113,7 +112,7 @@
         </div>
 
         <div class="flex items-center justify-end gap-2">
-            <a class="btn btn-secondary" href="{{ route('purchases.index') }}" wire:navigate>Annuler</a>
+            <a class="btn btn-secondary" href="{{ route('purchases.show', $purchaseOrder) }}" wire:navigate>Annuler</a>
             <button class="btn btn-primary" type="submit">Enregistrer</button>
         </div>
     </form>

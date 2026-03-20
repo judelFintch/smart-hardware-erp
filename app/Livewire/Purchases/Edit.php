@@ -6,14 +6,15 @@ use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\StockLocation;
-use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Services\StockService;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
-class Create extends Component
+class Edit extends Component
 {
+    public PurchaseOrder $purchaseOrder;
+
     public ?int $supplier_id = null;
     public string $type = 'local';
     public string $status = 'en_cours';
@@ -26,24 +27,46 @@ class Create extends Component
     public float $accessory_fees_local = 0;
     public float $transport_fees_local = 0;
     public string $notes = '';
-    public array $items = [];
     public ?int $receive_location_id = null;
+    public array $items = [];
 
-    public function mount(): void
+    public function mount(PurchaseOrder $purchaseOrder): void
     {
-        $defaultLocation = StockLocation::where('code', 'depot')->first();
-        $this->receive_location_id = $defaultLocation?->id;
+        $this->purchaseOrder = $purchaseOrder->load(['items']);
+        $this->supplier_id = $purchaseOrder->supplier_id;
+        $this->type = $purchaseOrder->type;
+        $this->status = $purchaseOrder->status;
+        $this->reference = $purchaseOrder->reference ?? '';
+        $this->ordered_at = optional($purchaseOrder->ordered_at)->toDateString();
+        $this->in_transit_at = optional($purchaseOrder->in_transit_at)->toDateString();
+        $this->received_at = optional($purchaseOrder->received_at)->toDateString();
+        $this->currency = $purchaseOrder->currency ?? 'CDF';
+        $this->exchange_rate = (float) ($purchaseOrder->exchange_rate ?? 1);
+        $this->accessory_fees_local = (float) ($purchaseOrder->accessory_fees_local ?? 0);
+        $this->transport_fees_local = (float) ($purchaseOrder->transport_fees_local ?? 0);
+        $this->notes = $purchaseOrder->notes ?? '';
+        $this->receive_location_id = $purchaseOrder->receive_location_id;
 
-        $this->items = [
-            ['product_id' => null, 'quantity' => null, 'received_quantity' => null, 'unit_price' => null],
-            ['product_id' => null, 'quantity' => null, 'received_quantity' => null, 'unit_price' => null],
-            ['product_id' => null, 'quantity' => null, 'received_quantity' => null, 'unit_price' => null],
-        ];
+        $this->items = $purchaseOrder->items->map(function ($item) {
+            return [
+                'id' => $item->id,
+                'product_id' => $item->product_id,
+                'quantity' => $item->quantity,
+                'received_quantity' => $item->received_quantity,
+                'unit_price' => $item->unit_price_local,
+            ];
+        })->toArray();
+
+        if (count($this->items) === 0) {
+            $this->items = [
+                ['id' => null, 'product_id' => null, 'quantity' => null, 'received_quantity' => null, 'unit_price' => null],
+            ];
+        }
     }
 
     public function addItem(): void
     {
-        $this->items[] = ['product_id' => null, 'quantity' => null, 'received_quantity' => null, 'unit_price' => null];
+        $this->items[] = ['id' => null, 'product_id' => null, 'quantity' => null, 'received_quantity' => null, 'unit_price' => null];
     }
 
     public function removeItem(int $index): void
@@ -82,9 +105,15 @@ class Create extends Component
             $this->addError('items', 'Ajoute au moins un article.');
             return;
         }
+        foreach ($filteredItems as $item) {
+            if (!isset($item['unit_price']) || $item['unit_price'] === '' || !is_numeric($item['unit_price'])) {
+                $this->addError('items', 'Chaque article doit avoir un prix unitaire.');
+                return;
+            }
+        }
 
         DB::transaction(function () use ($data, $filteredItems, $stockService) {
-            $purchase = PurchaseOrder::create([
+            $this->purchaseOrder->update([
                 'supplier_id' => $data['supplier_id'],
                 'type' => $data['type'],
                 'status' => $data['status'],
@@ -97,7 +126,11 @@ class Create extends Component
                 'accessory_fees_local' => (float) ($data['accessory_fees_local'] ?? 0),
                 'transport_fees_local' => (float) ($data['transport_fees_local'] ?? 0),
                 'notes' => $data['notes'] ?? null,
+                'receive_location_id' => $data['receive_location_id'] ?? null,
             ]);
+
+            $existingItemIds = $this->purchaseOrder->items->pluck('id')->toArray();
+            $submittedIds = [];
 
             $subtotalForeign = 0;
             $subtotalLocal = 0;
@@ -120,114 +153,63 @@ class Create extends Component
                     $receivedQty = $qty;
                 }
 
-                PurchaseOrderItem::create([
-                    'purchase_order_id' => $purchase->id,
-                    'product_id' => $item['product_id'],
-                    'quantity' => $qty,
-                    'received_quantity' => $receivedQty,
-                    'unit_price_foreign' => $data['type'] === 'foreign' ? $unitPrice : 0,
-                    'unit_price_local' => $data['type'] === 'foreign' ? $unitPrice * (float) $data['exchange_rate'] : $unitPrice,
-                    'line_total_foreign' => $lineForeign,
-                    'line_total_local' => $lineLocal,
-                    'unit_cost_local' => 0,
-                ]);
+                if (!empty($item['id'])) {
+                    $poItem = PurchaseOrderItem::find($item['id']);
+                    if ($poItem) {
+                        $poItem->update([
+                            'product_id' => $item['product_id'],
+                            'quantity' => $qty,
+                            'received_quantity' => $receivedQty,
+                            'unit_price_foreign' => $data['type'] === 'foreign' ? $unitPrice : 0,
+                            'unit_price_local' => $data['type'] === 'foreign' ? $unitPrice * (float) $data['exchange_rate'] : $unitPrice,
+                            'line_total_foreign' => $lineForeign,
+                            'line_total_local' => $lineLocal,
+                        ]);
+                        $submittedIds[] = $poItem->id;
+                    }
+                } else {
+                    $newItem = PurchaseOrderItem::create([
+                        'purchase_order_id' => $this->purchaseOrder->id,
+                        'product_id' => $item['product_id'],
+                        'quantity' => $qty,
+                        'received_quantity' => $receivedQty,
+                        'unit_price_foreign' => $data['type'] === 'foreign' ? $unitPrice : 0,
+                        'unit_price_local' => $data['type'] === 'foreign' ? $unitPrice * (float) $data['exchange_rate'] : $unitPrice,
+                        'line_total_foreign' => $lineForeign,
+                        'line_total_local' => $lineLocal,
+                        'unit_cost_local' => 0,
+                    ]);
+                    $submittedIds[] = $newItem->id;
+                }
+            }
+
+            $toDelete = array_diff($existingItemIds, $submittedIds);
+            if (!empty($toDelete)) {
+                PurchaseOrderItem::destroy($toDelete);
             }
 
             $accessoryFees = (float) ($data['accessory_fees_local'] ?? 0);
             $transportFees = (float) ($data['transport_fees_local'] ?? 0);
             $totalCostLocal = $subtotalLocal + $accessoryFees + $transportFees;
 
-            $purchase->update([
+            $this->purchaseOrder->update([
                 'subtotal_foreign' => $subtotalForeign,
                 'subtotal_local' => $subtotalLocal,
                 'total_cost_local' => $totalCostLocal,
             ]);
 
-            $this->allocateCostToItems($purchase, $accessoryFees + $transportFees, $totalQty);
-
-            // Generate purchase order note after creation
-            $supplier = Supplier::find($data['supplier_id']);
-            $productIds = array_column($filteredItems, 'product_id');
-            $productsById = Product::whereIn('id', $productIds)->get()->keyBy('id');
-
-            $orderLines = [];
-            foreach ($filteredItems as $item) {
-                $productName = $productsById[$item['product_id']]->name ?? 'Article non trouvé';
-                $qty = (float) $item['quantity'];
-                $unitPrice = (float) $item['unit_price'];
-                $lineTotal = $qty * $unitPrice;
-                $orderLines[] = "- {$productName}: {$qty} x {$unitPrice} = {$lineTotal}";
-            }
-
-            $generatedNote = trim(
-                "Bon de commande automatique\n" .
-                "Fournisseur: " . ($supplier?->name ?? 'Inconnu') . "\n" .
-                "Référence: " . ($data['reference'] ?? 'N/A') . "\n" .
-                "Commandé le: " . ($data['ordered_at'] ?? now()->toDateString()) . "\n" .
-                "Statut: " . $data['status'] . "\n" .
-                "Total local: " . number_format($totalCostLocal, 2, '.', ',') . "\n" .
-                "Lignes: \n" . implode("\n", $orderLines)
-            );
-
-            $purchase->update([
-                'notes' => trim((string) ($data['notes'] ?? '') . "\n\n" . $generatedNote),
-            ]);
-
-            if (in_array($purchase->status, ['receptionnee', 'approvisionnee'], true)) {
-                $this->receivePurchase($purchase, $stockService, $data['receive_location_id'] ?? null);
-            }
+            $this->allocateCostToItems($subtotalLocal > 0 ? $this->purchaseOrder : null, $accessoryFees + $transportFees, $totalQty);
         });
 
-        $this->redirectRoute('purchases.index');
+        $this->redirectRoute('purchases.show', $this->purchaseOrder);
     }
 
-    private function receivePurchase(PurchaseOrder $purchase, StockService $stockService, ?int $locationId): void
+    private function allocateCostToItems(?PurchaseOrder $purchase, float $extraFees, float $totalQty): void
     {
-        $alreadyReceived = StockMovement::where('reference_type', PurchaseOrder::class)
-            ->where('reference_id', $purchase->id)
-            ->where('type', 'purchase_in')
-            ->exists();
-
-        if ($alreadyReceived) {
+        if (!$purchase) {
             return;
         }
 
-        $destination = $locationId
-            ? StockLocation::findOrFail($locationId)
-            : StockLocation::where('code', 'depot')->firstOrFail();
-        $purchase->load('items.product');
-
-        foreach ($purchase->items as $item) {
-            $unitCost = (float) $item->unit_cost_local;
-            $unitSale = (float) $item->product->sale_price_local;
-            $qty = max(0, (float) ($item->received_quantity ?: $item->quantity));
-
-            if ($qty <= 0) {
-                continue;
-            }
-
-            $stockService->recordMovement([
-                'product_id' => $item->product_id,
-                'from_location_id' => null,
-                'to_location_id' => $destination->id,
-                'quantity' => $qty,
-                'unit_cost_local' => $unitCost,
-                'unit_sale_price_local' => $unitSale,
-                'type' => 'purchase_in',
-                'reference_type' => PurchaseOrder::class,
-                'reference_id' => $purchase->id,
-                'occurred_at' => $purchase->received_at ?? now(),
-            ]);
-        }
-
-        $purchase->update([
-            'status' => 'approvisionnee',
-            'received_at' => $purchase->received_at ?? now()->toDateString(),
-        ]);
-    }
-
-    private function allocateCostToItems(PurchaseOrder $purchase, float $extraFees, float $totalQty): void
-    {
         if ($extraFees <= 0 || $totalQty <= 0) {
             foreach ($purchase->items as $item) {
                 $item->update([
@@ -252,7 +234,7 @@ class Create extends Component
         $products = Product::orderBy('name')->get();
         $locations = StockLocation::orderBy('name')->get();
 
-        return view('livewire.purchases.create', compact('suppliers', 'products', 'locations'))
+        return view('livewire.purchases.edit', compact('suppliers', 'products', 'locations'))
             ->layout('layouts.app');
     }
 }
