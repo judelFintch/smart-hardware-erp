@@ -37,6 +37,7 @@
                             <td class="p-2">{{ number_format($sale->total_amount, 2) }}</td>
                             <td class="p-2">
                                 <a href="{{ route('sales.show', $sale) }}" class="text-blue-600">Voir</a>
+                                <a href="{{ route('sales.print', $sale) }}" class="text-emerald-600 ml-3" target="_blank" rel="noopener">Impression thermique</a>
                             </td>
                         </tr>
                     @endforeach
