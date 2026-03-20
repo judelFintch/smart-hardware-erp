@@ -3,6 +3,7 @@
 namespace App\Livewire\Products;
 
 use App\Models\Product;
+use App\Models\StockBalance;
 use App\Models\Unit;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -14,7 +15,13 @@ class Index extends Component
     use WithPagination;
 
     public $importFile;
+    public string $search = '';
     public int $perPage = 15;
+
+    public function updatingSearch(): void
+    {
+        $this->resetPage();
+    }
 
     public function delete(int $productId): void
     {
@@ -80,10 +87,29 @@ class Index extends Component
         $products = Product::query()
             ->with('unit')
             ->withSum('stockBalances', 'quantity')
+            ->when($this->search !== '', function ($query) {
+                $like = '%' . trim($this->search) . '%';
+
+                $query->where(function ($inner) use ($like) {
+                    $inner->where('name', 'like', $like)
+                        ->orWhere('sku', 'like', $like)
+                        ->orWhere('barcode', 'like', $like);
+                });
+            })
             ->orderBy('name')
             ->paginate($this->perPage);
 
-        return view('livewire.products.index', compact('products'))
+        $stats = [
+            'products_count' => Product::count(),
+            'stock_total' => (float) StockBalance::sum('quantity'),
+            'low_stock_count' => Product::query()
+                ->withSum('stockBalances', 'quantity')
+                ->get()
+                ->filter(fn (Product $product) => (float) ($product->stock_balances_sum_quantity ?? 0) <= (float) $product->reorder_level)
+                ->count(),
+        ];
+
+        return view('livewire.products.index', compact('products', 'stats'))
             ->layout('layouts.app');
     }
 }
