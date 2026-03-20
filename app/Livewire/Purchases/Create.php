@@ -97,6 +97,7 @@ class Create extends Component
                 'accessory_fees_local' => (float) ($data['accessory_fees_local'] ?? 0),
                 'transport_fees_local' => (float) ($data['transport_fees_local'] ?? 0),
                 'notes' => $data['notes'] ?? null,
+                'receive_location_id' => $data['receive_location_id'] ?? null,
             ]);
 
             $subtotalForeign = 0;

@@ -32,7 +32,7 @@ class Edit extends Component
 
     public function mount(PurchaseOrder $purchaseOrder): void
     {
-        $this->purchaseOrder = $purchaseOrder->load(['items']);
+        $this->purchaseOrder = $purchaseOrder->load(['items', 'receiveLocation']);
         $this->supplier_id = $purchaseOrder->supplier_id;
         $this->type = $purchaseOrder->type;
         $this->status = $purchaseOrder->status;

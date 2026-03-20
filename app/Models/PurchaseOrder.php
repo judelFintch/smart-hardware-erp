@@ -29,6 +29,7 @@ class PurchaseOrder extends Model
         'transport_fees_local',
         'total_cost_local',
         'notes',
+        'receive_location_id',
         'created_by',
     ];
 
@@ -41,6 +42,11 @@ class PurchaseOrder extends Model
     public function supplier(): BelongsTo
     {
         return $this->belongsTo(Supplier::class);
+    }
+
+    public function receiveLocation(): BelongsTo
+    {
+        return $this->belongsTo(StockLocation::class, 'receive_location_id');
     }
 
     public function items(): HasMany

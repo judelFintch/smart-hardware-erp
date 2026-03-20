@@ -51,6 +51,10 @@
                         <div class="mt-2 text-base font-semibold text-slate-900">{{ $purchaseOrder->ordered_at?->format('d/m/Y') ?? '—' }}</div>
                     </div>
                     <div class="rounded-2xl bg-white/90 px-4 py-3 shadow-sm ring-1 ring-slate-200">
+                        <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Destination stock</div>
+                        <div class="mt-2 text-base font-semibold text-slate-900">{{ $purchaseOrder->receiveLocation?->name ?? 'À définir' }}</div>
+                    </div>
+                    <div class="rounded-2xl bg-white/90 px-4 py-3 shadow-sm ring-1 ring-slate-200">
                         <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Réception</div>
                         <div class="mt-2 text-base font-semibold text-slate-900">{{ $purchaseOrder->received_at?->format('d/m/Y') ?? 'En attente' }}</div>
                     </div>
@@ -101,6 +105,23 @@
                 <div class="px-6 py-10 text-sm text-slate-500">Aucune ligne d'achat enregistrée.</div>
             @else
                 <form wire:submit.prevent="receive">
+                    <div class="border-b border-slate-100 px-6 py-4 bg-slate-50/60">
+                        <div class="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+                            <div class="max-w-md">
+                                <label class="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Entité qui reçoit la marchandise</label>
+                                <select wire:model.defer="receive_location_id" class="input mt-2">
+                                    <option value="">Choisir dépôt ou magasin</option>
+                                    @foreach ($locations as $location)
+                                        <option value="{{ $location->id }}">{{ $location->name }} ({{ $location->code }})</option>
+                                    @endforeach
+                                </select>
+                                @error('receive_location_id') <span class="mt-2 block text-red-600 text-xs">{{ $message }}</span> @enderror
+                            </div>
+                            <div class="text-sm text-slate-500">
+                                Le stock sera ajouté uniquement dans cet emplacement.
+                            </div>
+                        </div>
+                    </div>
                     <div class="overflow-x-auto">
                         <table class="min-w-full">
                             <thead class="bg-slate-50/80">

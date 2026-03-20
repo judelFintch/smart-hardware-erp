@@ -19,6 +19,7 @@ class Show extends Component
     use WithFileUploads;
 
     public PurchaseOrder $purchaseOrder;
+    public ?int $receive_location_id = null;
 
     public float $amount_foreign = 0;
     public float $amount_local = 0;
@@ -32,7 +33,10 @@ class Show extends Component
 
     public function mount(PurchaseOrder $purchaseOrder): void
     {
-        $this->purchaseOrder = $purchaseOrder->load(['supplier', 'items.product', 'transfers', 'attachments']);
+        $this->purchaseOrder = $purchaseOrder->load(['supplier', 'items.product', 'transfers', 'attachments', 'receiveLocation']);
+        $defaultLocation = StockLocation::where('code', 'depot')->first();
+        $this->receive_location_id = $purchaseOrder->receive_location_id ?? $defaultLocation?->id;
+
         foreach ($this->purchaseOrder->items as $item) {
             $this->receivedQuantities[$item->id] = $item->received_quantity ?? $item->quantity;
         }
@@ -96,11 +100,22 @@ class Show extends Component
 
     public function receive(StockService $stockService): void
     {
-        DB::transaction(function () use ($stockService) {
+        $data = $this->validate([
+            'receive_location_id' => ['required', 'exists:stock_locations,id'],
+        ]);
+
+        DB::transaction(function () use ($stockService, $data) {
+            $destination = StockLocation::findOrFail($data['receive_location_id']);
+
             if ($this->purchaseOrder->status !== 'approvisionnee') {
                 $this->purchaseOrder->update([
                     'status' => 'approvisionnee',
+                    'receive_location_id' => $destination->id,
                     'received_at' => $this->purchaseOrder->received_at ?? now()->toDateString(),
+                ]);
+            } elseif ((int) $this->purchaseOrder->receive_location_id !== $destination->id) {
+                $this->purchaseOrder->update([
+                    'receive_location_id' => $destination->id,
                 ]);
             }
 
@@ -113,7 +128,6 @@ class Show extends Component
                 return;
             }
 
-            $depot = StockLocation::where('code', 'depot')->firstOrFail();
             $this->purchaseOrder->load('items.product');
 
             foreach ($this->purchaseOrder->items as $item) {
@@ -131,7 +145,7 @@ class Show extends Component
                 $stockService->recordMovement([
                     'product_id' => $item->product_id,
                     'from_location_id' => null,
-                    'to_location_id' => $depot->id,
+                    'to_location_id' => $destination->id,
                     'quantity' => $receivedQuantity,
                     'unit_cost_local' => $unitCost,
                     'unit_sale_price_local' => $unitSale,
@@ -143,12 +157,14 @@ class Show extends Component
             }
         });
 
-        $this->purchaseOrder->refresh()->load(['supplier', 'items.product', 'transfers']);
+        $this->purchaseOrder->refresh()->load(['supplier', 'items.product', 'transfers', 'attachments', 'receiveLocation']);
     }
 
     public function render()
     {
-        return view('livewire.purchases.show')
+        $locations = StockLocation::orderBy('name')->get();
+
+        return view('livewire.purchases.show', compact('locations'))
             ->layout('layouts.app');
     }
 }
