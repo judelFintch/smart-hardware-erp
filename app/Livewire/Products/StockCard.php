@@ -46,7 +46,9 @@ class StockCard extends Component
 
         $lastMovementAt = StockMovement::query()
             ->where('product_id', $this->product->id)
-            ->max('occurred_at');
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->first()?->occurred_at;
 
         $runningStock = $totalStock;
         $movements->getCollection()->transform(function (StockMovement $movement) use (&$runningStock) {
