@@ -78,7 +78,20 @@
                                 <div class="text-[11px] uppercase tracking-[0.14em] text-slate-400">PU auto</div>
                                 <div class="font-semibold text-slate-900">{{ number_format($unitPrice, 2) }}</div>
                             </div>
-                            <button type="button" wire:click="removeItem({{ $index }})" class="btn btn-secondary">Supprimer</button>
+                            <button
+                                type="button"
+                                wire:click="removeItem({{ $index }})"
+                                class="btn btn-secondary px-3 text-red-600"
+                                aria-label="Supprimer la ligne"
+                                title="Supprimer la ligne"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 6h18" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 6V4h8v2" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 6l-1 14H6L5 6" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 11v6M14 11v6" />
+                                </svg>
+                            </button>
                         </div>
                         <div class="mt-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-sm">
                             <div class="flex flex-wrap items-center gap-4 text-slate-500">
