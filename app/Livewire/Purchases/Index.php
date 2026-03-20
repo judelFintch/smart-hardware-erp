@@ -141,9 +141,17 @@ class Index extends Component
 
     public function render()
     {
-        $purchases = PurchaseOrder::with('supplier')->orderByDesc('id')->paginate($this->perPage);
+        $query = PurchaseOrder::with(['supplier', 'receiveLocation'])->orderByDesc('id');
+        $purchases = (clone $query)->paginate($this->perPage);
 
-        return view('livewire.purchases.index', compact('purchases'))
+        $stats = [
+            'count' => (clone $query)->count(),
+            'total_cost' => (float) ((clone $query)->sum('total_cost_local') ?? 0),
+            'in_progress' => (clone $query)->whereNotIn('status', ['approvisionnee'])->count(),
+            'received' => (clone $query)->where('status', 'approvisionnee')->count(),
+        ];
+
+        return view('livewire.purchases.index', compact('purchases', 'stats'))
             ->layout('layouts.app');
     }
 }
