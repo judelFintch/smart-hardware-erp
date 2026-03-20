@@ -29,6 +29,7 @@
                         <th class="p-2">Code-barres</th>
                         <th class="p-2">Nom</th>
                         <th class="p-2">Unité</th>
+                        <th class="p-2 text-right">Qté stock</th>
                         <th class="p-2">Coût moyen</th>
                         <th class="p-2">Prix vente</th>
                         <th class="p-2">Actions</th>
@@ -41,6 +42,7 @@
                             <td class="p-2">{{ $product->barcode ?? '—' }}</td>
                             <td class="p-2">{{ $product->name }}</td>
                             <td class="p-2">{{ $product->unit?->code ?? '—' }}</td>
+                            <td class="p-2 text-right">{{ number_format((float) ($product->stock_balances_sum_quantity ?? 0), 3) }}</td>
                             <td class="p-2">{{ number_format($product->avg_cost_local, 2) }}</td>
                             <td class="p-2">{{ number_format($product->sale_price_local, 2) }}</td>
                             <td class="p-2">

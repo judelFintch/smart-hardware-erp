@@ -77,7 +77,11 @@ class Index extends Component
 
     public function render()
     {
-        $products = Product::orderBy('name')->paginate($this->perPage);
+        $products = Product::query()
+            ->with('unit')
+            ->withSum('stockBalances', 'quantity')
+            ->orderBy('name')
+            ->paginate($this->perPage);
 
         return view('livewire.products.index', compact('products'))
             ->layout('layouts.app');
