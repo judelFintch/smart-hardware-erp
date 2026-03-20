@@ -10,6 +10,7 @@ use App\Livewire\InventoryCounts\Index as InventoryCountsIndex;
 use App\Livewire\InventoryCounts\Create as InventoryCountsCreate;
 use App\Livewire\Products\Form as ProductsForm;
 use App\Livewire\Products\Index as ProductsIndex;
+use App\Livewire\Products\StockCard as ProductsStockCard;
 use App\Livewire\Purchases\Create as PurchasesCreate;
 use App\Livewire\Purchases\Index as PurchasesIndex;
 use App\Livewire\Purchases\Show as PurchasesShow;
@@ -50,6 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', Dashboard::class)->middleware('role:owner,manager')->name('dashboard');
     Route::get('products', ProductsIndex::class)->name('products.index');
     Route::get('products/create', ProductsForm::class)->middleware('role:owner,manager')->name('products.create');
+    Route::get('products/{product}/stock-card', ProductsStockCard::class)->name('products.stock-card');
     Route::get('products/{product}/edit', ProductsForm::class)->middleware('role:owner,manager')->name('products.edit');
 
     Route::get('suppliers', SuppliersIndex::class)->name('suppliers.index');
