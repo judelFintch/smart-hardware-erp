@@ -25,16 +25,14 @@ class Settings extends Component
     public function mount(): void
     {
         $this->company = CompanySetting::firstOrCreate(['id' => 1], ['name' => 'Entreprise']);
-        $this->fill($this->company->only([
-            'name',
-            'legal_name',
-            'tax_id',
-            'phone',
-            'email',
-            'address',
-            'currency',
-            'invoice_footer',
-        ]));
+        $this->name = (string) ($this->company->name ?? 'Entreprise');
+        $this->legal_name = (string) ($this->company->legal_name ?? '');
+        $this->tax_id = (string) ($this->company->tax_id ?? '');
+        $this->phone = (string) ($this->company->phone ?? '');
+        $this->email = (string) ($this->company->email ?? '');
+        $this->address = (string) ($this->company->address ?? '');
+        $this->currency = (string) ($this->company->currency ?? 'CDF');
+        $this->invoice_footer = (string) ($this->company->invoice_footer ?? '');
     }
 
     public function save(): void
@@ -55,6 +53,13 @@ class Settings extends Component
             $path = $this->logo->store('company');
             $data['logo_path'] = $path;
         }
+
+        $data['legal_name'] = $data['legal_name'] ?: null;
+        $data['tax_id'] = $data['tax_id'] ?: null;
+        $data['phone'] = $data['phone'] ?: null;
+        $data['email'] = $data['email'] ?: null;
+        $data['address'] = $data['address'] ?: null;
+        $data['invoice_footer'] = $data['invoice_footer'] ?: null;
 
         $this->company->update($data);
         $this->dispatch('saved');
