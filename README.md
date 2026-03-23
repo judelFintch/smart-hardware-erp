@@ -52,15 +52,15 @@ Les seeders créent:
 - Paramètres entreprise par défaut
 - Données de démo (produits, clients, fournisseurs)
 
-## Import produits (CSV)
+## Import produits (CSV / Excel)
 Colonnes supportées:
 - `name`
 - `sku`
 - `barcode`
 - `unit_code` (ex: `pcs`, `kg`)
-- `price`
-- `cost`
-- `stock`
+- `description`
+- `margin`
+- `reorder_level`
 
 Si `unit_code` est absent, l’unité par défaut est `pcs`.
 

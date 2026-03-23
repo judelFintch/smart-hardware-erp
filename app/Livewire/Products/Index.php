@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Products;
 
+use App\Exports\ProductImportTemplateExport;
 use App\Models\Product;
 use App\Models\StockBalance;
 use App\Models\StockLocation;
@@ -9,6 +10,8 @@ use App\Models\Unit;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Index extends Component
 {
@@ -35,31 +38,29 @@ class Index extends Component
         Product::whereKey($productId)->delete();
     }
 
+    public function downloadImportTemplate()
+    {
+        return Excel::download(new ProductImportTemplateExport(), 'modele-import-produits.xlsx');
+    }
+
     public function importCsv(): void
     {
         $this->validate([
-            'importFile' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+            'importFile' => ['required', 'file', 'mimes:csv,txt,xls,xlsx', 'max:5120'],
         ]);
 
-        $path = $this->importFile->getRealPath();
-        $handle = fopen($path, 'r');
-
-        if (!$handle) {
-            $this->addError('importFile', 'Impossible de lire le fichier.');
+        $rows = $this->extractImportRows();
+        if (empty($rows)) {
+            $this->addError('importFile', 'Impossible de lire le fichier ou fichier vide.');
             return;
         }
 
-        $header = fgetcsv($handle);
-        if (!$header) {
-            fclose($handle);
-            $this->addError('importFile', 'Fichier CSV vide.');
-            return;
-        }
+        $header = array_shift($rows);
+        $columns = array_map(fn ($value) => strtolower(trim((string) $value)), $header);
 
-        $columns = array_map('strtolower', $header);
-
-        while (($row = fgetcsv($handle)) !== false) {
-            $data = array_combine($columns, $row);
+        foreach ($rows as $row) {
+            $normalizedRow = array_slice(array_pad($row, count($columns), null), 0, count($columns));
+            $data = array_combine($columns, $normalizedRow);
             if (!$data || empty($data['sku']) || empty($data['name'])) {
                 continue;
             }
@@ -85,8 +86,33 @@ class Index extends Component
             $product->save();
         }
 
-        fclose($handle);
         $this->reset('importFile');
+    }
+
+    protected function extractImportRows(): array
+    {
+        $path = $this->importFile->getRealPath();
+        $extension = strtolower($this->importFile->getClientOriginalExtension());
+
+        if (in_array($extension, ['xls', 'xlsx'], true)) {
+            $spreadsheet = IOFactory::load($path);
+
+            return $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
+        }
+
+        $handle = fopen($path, 'r');
+        if (!$handle) {
+            return [];
+        }
+
+        $rows = [];
+        while (($row = fgetcsv($handle)) !== false) {
+            $rows[] = $row;
+        }
+
+        fclose($handle);
+
+        return $rows;
     }
 
     public function render()
