@@ -59,10 +59,14 @@ Colonnes supportées:
 - `barcode`
 - `unit_code` (ex: `pcs`, `kg`)
 - `description`
+- `cost`
+- `price`
+- `stock`
 - `margin`
 - `reorder_level`
 
 Si `unit_code` est absent, l’unité par défaut est `pcs`.
+Si `stock` est renseigné, il est injecté dans l’entité choisie au moment de l’import.
 
 ## Sécurité
 - Les rôles protègent les routes sensibles via middleware

@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\StockBalance;
 use App\Models\StockLocation;
 use App\Models\Unit;
+use App\Services\StockService;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -21,7 +22,14 @@ class Index extends Component
     public $importFile;
     public string $search = '';
     public ?int $location_id = null;
+    public ?int $import_location_id = null;
     public int $perPage = 15;
+
+    public function mount(): void
+    {
+        $defaultLocation = StockLocation::where('code', 'depot')->first();
+        $this->import_location_id = $defaultLocation?->id;
+    }
 
     public function updatingSearch(): void
     {
@@ -43,10 +51,11 @@ class Index extends Component
         return Excel::download(new ProductImportTemplateExport(), 'modele-import-produits.xlsx');
     }
 
-    public function importCsv(): void
+    public function importCsv(StockService $stockService): void
     {
         $this->validate([
             'importFile' => ['required', 'file', 'mimes:csv,txt,xls,xlsx', 'max:5120'],
+            'import_location_id' => ['nullable', 'exists:stock_locations,id'],
         ]);
 
         $rows = $this->extractImportRows();
@@ -77,13 +86,32 @@ class Index extends Component
                 $product->unit_id = $pcs?->id;
             }
             $product->description = $data['description'] ?? $product->description;
+            $product->avg_cost_local = isset($data['cost']) && $data['cost'] !== '' ? (float) $data['cost'] : $product->avg_cost_local;
+            $product->sale_price_local = isset($data['price']) && $data['price'] !== '' ? (float) $data['price'] : $product->sale_price_local;
             $product->sale_margin_percent = isset($data['margin']) ? (float) $data['margin'] : $product->sale_margin_percent;
             $product->reorder_level = isset($data['reorder_level']) ? (float) $data['reorder_level'] : $product->reorder_level;
             if (!$product->exists) {
-                $product->avg_cost_local = 0;
-                $product->sale_price_local = 0;
+                $product->avg_cost_local = isset($data['cost']) && $data['cost'] !== '' ? (float) $data['cost'] : 0;
+                $product->sale_price_local = isset($data['price']) && $data['price'] !== '' ? (float) $data['price'] : 0;
             }
             $product->save();
+
+            $stock = isset($data['stock']) && $data['stock'] !== '' ? (float) $data['stock'] : 0;
+            if ($stock > 0 && $this->import_location_id) {
+                $stockService->recordMovement([
+                    'product_id' => $product->id,
+                    'from_location_id' => null,
+                    'to_location_id' => $this->import_location_id,
+                    'quantity' => $stock,
+                    'unit_cost_local' => (float) $product->avg_cost_local,
+                    'unit_sale_price_local' => (float) $product->sale_price_local,
+                    'type' => 'adjustment_in',
+                    'reference_type' => 'product_import',
+                    'reference_id' => null,
+                    'occurred_at' => now(),
+                    'note' => 'Import produits',
+                ]);
+            }
         }
 
         $this->reset('importFile');

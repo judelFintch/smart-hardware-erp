@@ -10,6 +10,12 @@
             </div>
             <div class="flex flex-wrap gap-2 items-center">
                 <form wire:submit.prevent="importCsv" class="flex flex-wrap gap-2 items-center">
+                    <select wire:model="import_location_id" class="input">
+                        <option value="">Entité du stock</option>
+                        @foreach ($locations as $location)
+                            <option value="{{ $location->id }}">{{ $location->name }} ({{ $location->code }})</option>
+                        @endforeach
+                    </select>
                     <input type="file" wire:model="importFile" class="input">
                     <button type="submit" class="btn btn-secondary">Importer fichier</button>
                 </form>
@@ -65,8 +71,10 @@
     </div>
 
     @error('importFile') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+    @error('import_location_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
     <div class="text-xs text-slate-500">
-        Import accepté: CSV ou Excel. Colonnes attendues: <span class="font-medium text-slate-700">sku, name, barcode, unit_code, description, margin, reorder_level</span>.
+        Import accepté: CSV ou Excel. Colonnes attendues: <span class="font-medium text-slate-700">sku, name, barcode, unit_code, description, cost, price, stock, margin, reorder_level</span>.
+        Si `stock` est renseigné, il sera ajouté dans l'entité sélectionnée.
     </div>
     <div class="rounded-[28px] border border-slate-200 bg-white shadow-sm overflow-hidden">
         @if ($products->isEmpty())
