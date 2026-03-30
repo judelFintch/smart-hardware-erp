@@ -40,7 +40,7 @@ class Form extends Component
             'sku' => ['required', 'string', 'max:255', Rule::unique('products', 'sku')->ignore($this->product?->id)->whereNull('deleted_at')],
             'barcode' => ['nullable', 'string', 'max:255', Rule::unique('products', 'barcode')->ignore($this->product?->id)->whereNull('deleted_at')],
             'name' => ['required', 'string', 'max:255'],
-            'unit_id' => ['required', 'exists:units,id'],
+            'unit_id' => ['nullable', 'exists:units,id'],
             'description' => ['nullable', 'string'],
             'sale_margin_percent' => ['nullable', 'numeric', 'min:0'],
             'reorder_level' => ['nullable', 'numeric', 'min:0'],

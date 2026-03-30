@@ -25,7 +25,7 @@
             </div>
             <div>
                 <label class="block text-sm font-medium">Unité</label>
-                <select wire:model.defer="unit_id" class="input" required>
+                <select wire:model.defer="unit_id" class="input">
                     <option value="">-- Choisir --</option>
                     @foreach ($units as $unit)
                         <option value="{{ $unit->id }}">{{ $unit->name }} ({{ strtoupper($unit->code) }})</option>
