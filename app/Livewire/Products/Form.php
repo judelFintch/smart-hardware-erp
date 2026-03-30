@@ -15,6 +15,7 @@ class Form extends Component
     public string $barcode = '';
     public ?int $unit_id = null;
     public string $description = '';
+    public float $sale_price_local = 0;
     public float $sale_margin_percent = 0;
     public float $reorder_level = 0;
     public bool $is_active = true;
@@ -28,6 +29,7 @@ class Form extends Component
             $this->barcode = (string) $product->barcode;
             $this->unit_id = $product->unit_id;
             $this->description = (string) $product->description;
+            $this->sale_price_local = (float) $product->sale_price_local;
             $this->sale_margin_percent = (float) $product->sale_margin_percent;
             $this->reorder_level = (float) $product->reorder_level;
             $this->is_active = (bool) $product->is_active;
@@ -42,21 +44,23 @@ class Form extends Component
             'name' => ['required', 'string', 'max:255'],
             'unit_id' => ['nullable', 'exists:units,id'],
             'description' => ['nullable', 'string'],
+            'sale_price_local' => ['nullable', 'numeric', 'min:0'],
             'sale_margin_percent' => ['nullable', 'numeric', 'min:0'],
             'reorder_level' => ['nullable', 'numeric', 'min:0'],
             'is_active' => ['boolean'],
         ]);
 
         $data['barcode'] = blank($data['barcode'] ?? null) ? null : trim((string) $data['barcode']);
+        $data['sale_price_local'] = (float) ($data['sale_price_local'] ?? 0);
 
         if ($this->product) {
-            $salePrice = $this->product->avg_cost_local > 0
-                ? $this->product->avg_cost_local * (1 + (((float) $data['sale_margin_percent']) / 100))
-                : 0;
-            $this->product->update(array_merge($data, ['sale_price_local' => $salePrice]));
+            if ($data['sale_price_local'] <= 0 && $this->product->avg_cost_local > 0) {
+                $data['sale_price_local'] = $this->product->avg_cost_local * (1 + (((float) $data['sale_margin_percent']) / 100));
+            }
+
+            $this->product->update($data);
         } else {
             $data['avg_cost_local'] = 0;
-            $data['sale_price_local'] = 0;
             Product::create($data);
         }
 

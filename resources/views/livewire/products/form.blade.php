@@ -34,8 +34,16 @@
                 @error('unit_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
             <div>
+                <label class="block text-sm font-medium">Prix de vente</label>
+                <input wire:model.defer="sale_price_local" type="number" step="0.01" min="0" class="input" placeholder="0.00">
+                @error('sale_price_local') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+            </div>
+            <div>
                 <label class="block text-sm font-medium">Marge (%)</label>
                 <input wire:model.defer="sale_margin_percent" type="number" step="0.01" class="input">
+            </div>
+            <div class="md:col-span-2 text-xs text-slate-500">
+                Si un prix de vente est saisi, il est utilisé tel quel. Laisse `0` pour laisser la marge calculer le prix automatiquement.
             </div>
             <div>
                 <label class="block text-sm font-medium">Seuil d'alerte</label>

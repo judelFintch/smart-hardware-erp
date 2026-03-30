@@ -48,16 +48,18 @@ class StockService
 
         $product = Product::find($productId);
         $margin = (float) ($product?->sale_margin_percent ?? 0);
+        $manualSalePrice = (float) ($product?->sale_price_local ?? 0);
         $calculatedSalePrice = $newAvgCost > 0 ? $newAvgCost * (1 + ($margin / 100)) : 0;
+        $resolvedSalePrice = $manualSalePrice > 0 ? $manualSalePrice : $calculatedSalePrice;
 
-        $balance->sale_price_local = $calculatedSalePrice > 0 ? $calculatedSalePrice : $balance->sale_price_local;
+        $balance->sale_price_local = $resolvedSalePrice > 0 ? $resolvedSalePrice : $balance->sale_price_local;
 
         $balance->save();
 
         if ($product) {
             $product->update([
                 'avg_cost_local' => $newAvgCost,
-                'sale_price_local' => $balance->sale_price_local,
+                'sale_price_local' => $resolvedSalePrice > 0 ? $resolvedSalePrice : $product->sale_price_local,
             ]);
         }
     }
