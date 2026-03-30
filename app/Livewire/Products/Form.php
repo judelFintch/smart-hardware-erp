@@ -47,6 +47,8 @@ class Form extends Component
             'is_active' => ['boolean'],
         ]);
 
+        $data['barcode'] = blank($data['barcode'] ?? null) ? null : trim((string) $data['barcode']);
+
         if ($this->product) {
             $salePrice = $this->product->avg_cost_local > 0
                 ? $this->product->avg_cost_local * (1 + (((float) $data['sale_margin_percent']) / 100))

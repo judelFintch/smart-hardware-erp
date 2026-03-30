@@ -82,7 +82,7 @@ class Index extends Component
 
             $product = Product::firstOrNew(['sku' => $data['sku']]);
             $product->name = $data['name'];
-            $product->barcode = $data['barcode'] ?? $product->barcode;
+            $product->barcode = blank($data['barcode'] ?? null) ? null : trim((string) $data['barcode']);
             if (!empty($data['unit_code'])) {
                 $unit = Unit::where('code', $data['unit_code'])->first();
                 $product->unit_id = $unit?->id ?? $product->unit_id;

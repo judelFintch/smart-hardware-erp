@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Concerns\PreservesUniqueValuesOnSoftDelete;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -58,5 +59,12 @@ class Product extends Model
     protected function uniqueSoftDeleteColumns(): array
     {
         return ['sku', 'barcode'];
+    }
+
+    protected function barcode(): Attribute
+    {
+        return Attribute::make(
+            set: fn ($value) => blank($value) ? null : trim((string) $value),
+        );
     }
 }
