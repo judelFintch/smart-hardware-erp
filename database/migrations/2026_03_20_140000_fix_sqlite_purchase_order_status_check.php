@@ -13,6 +13,7 @@ return new class extends Migration
 
         DB::statement('PRAGMA foreign_keys = OFF');
         DB::beginTransaction();
+        DB::statement('DROP TABLE IF EXISTS purchase_orders_new');
 
         DB::statement("
             CREATE TABLE purchase_orders_new (
@@ -33,6 +34,7 @@ return new class extends Migration
                 total_cost_local numeric not null default '0',
                 notes text,
                 created_by integer,
+                deleted_at datetime,
                 created_at datetime,
                 updated_at datetime,
                 foreign key(supplier_id) references suppliers(id) on delete cascade,
@@ -44,12 +46,12 @@ return new class extends Migration
             INSERT INTO purchase_orders_new (
                 id, supplier_id, type, status, reference, ordered_at, in_transit_at, received_at,
                 currency, exchange_rate, subtotal_foreign, subtotal_local, accessory_fees_local,
-                transport_fees_local, total_cost_local, notes, created_by, created_at, updated_at
+                transport_fees_local, total_cost_local, notes, created_by, deleted_at, created_at, updated_at
             )
             SELECT
                 id, supplier_id, type, status, reference, ordered_at, in_transit_at, received_at,
                 currency, exchange_rate, subtotal_foreign, subtotal_local, accessory_fees_local,
-                transport_fees_local, total_cost_local, notes, created_by, created_at, updated_at
+                transport_fees_local, total_cost_local, notes, created_by, deleted_at, created_at, updated_at
             FROM purchase_orders
         ");
 
@@ -72,6 +74,7 @@ return new class extends Migration
         DB::statement("UPDATE purchase_orders SET status = 'en_cours' WHERE status NOT IN ('en_cours', 'en_transit', 'receptionnee')");
         DB::statement('PRAGMA foreign_keys = OFF');
         DB::beginTransaction();
+        DB::statement('DROP TABLE IF EXISTS purchase_orders_old');
 
         DB::statement("
             CREATE TABLE purchase_orders_old (
@@ -92,6 +95,7 @@ return new class extends Migration
                 total_cost_local numeric not null default '0',
                 notes text,
                 created_by integer,
+                deleted_at datetime,
                 created_at datetime,
                 updated_at datetime,
                 foreign key(supplier_id) references suppliers(id) on delete cascade,
@@ -103,12 +107,12 @@ return new class extends Migration
             INSERT INTO purchase_orders_old (
                 id, supplier_id, type, status, reference, ordered_at, in_transit_at, received_at,
                 currency, exchange_rate, subtotal_foreign, subtotal_local, accessory_fees_local,
-                transport_fees_local, total_cost_local, notes, created_by, created_at, updated_at
+                transport_fees_local, total_cost_local, notes, created_by, deleted_at, created_at, updated_at
             )
             SELECT
                 id, supplier_id, type, status, reference, ordered_at, in_transit_at, received_at,
                 currency, exchange_rate, subtotal_foreign, subtotal_local, accessory_fees_local,
-                transport_fees_local, total_cost_local, notes, created_by, created_at, updated_at
+                transport_fees_local, total_cost_local, notes, created_by, deleted_at, created_at, updated_at
             FROM purchase_orders
         ");
 
