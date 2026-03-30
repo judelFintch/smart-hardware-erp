@@ -5,11 +5,17 @@ namespace App\Providers;
 use App\Models\CompanySetting;
 use App\Models\Customer;
 use App\Models\Expense;
+use App\Models\Attachment;
 use App\Models\InventoryCount;
+use App\Models\InventoryCountItem;
 use App\Models\Product;
 use App\Models\PurchaseOrder;
+use App\Models\PurchaseOrderItem;
+use App\Models\PurchaseTransfer;
 use App\Models\Sale;
+use App\Models\SaleItem;
 use App\Models\StockLocation;
+use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\User;
@@ -45,13 +51,19 @@ class AppServiceProvider extends ServiceProvider
             Customer::class,
             Supplier::class,
             PurchaseOrder::class,
+            PurchaseOrderItem::class,
+            PurchaseTransfer::class,
             Sale::class,
+            SaleItem::class,
             Expense::class,
             User::class,
             StockLocation::class,
+            StockMovement::class,
             Unit::class,
             CompanySetting::class,
             InventoryCount::class,
+            InventoryCountItem::class,
+            Attachment::class,
         ];
 
         foreach ($models as $model) {

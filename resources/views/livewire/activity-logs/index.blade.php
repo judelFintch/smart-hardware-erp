@@ -43,6 +43,7 @@
                             <th class="px-4 py-3">Action</th>
                             <th class="px-4 py-3">Entité</th>
                             <th class="px-4 py-3">ID</th>
+                            <th class="px-4 py-3">Détails</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
@@ -58,6 +59,19 @@
                                 </td>
                                 <td class="px-4 py-4 text-sm text-slate-600">{{ class_basename($log->subject_type) }}</td>
                                 <td class="px-4 py-4 font-medium text-slate-900">{{ $log->subject_id }}</td>
+                                <td class="px-4 py-4 text-sm text-slate-600">
+                                    <div class="font-medium text-slate-900">{{ $log->description ?: 'Sans description' }}</div>
+                                    @if (!empty($log->meta['changes']))
+                                        <div class="mt-1 space-y-1 text-xs text-slate-500">
+                                            @foreach (collect($log->meta['changes'])->take(4) as $field => $change)
+                                                <div>
+                                                    <span class="font-medium text-slate-700">{{ \Illuminate\Support\Str::headline($field) }}:</span>
+                                                    {{ $change['old'] ?? '∅' }} → {{ $change['new'] ?? '∅' }}
+                                                </div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                </td>
                             </tr>
                         @endforeach
                     </tbody>
