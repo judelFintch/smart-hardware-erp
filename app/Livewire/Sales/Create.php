@@ -9,6 +9,7 @@ use App\Models\SaleItem;
 use App\Models\StockBalance;
 use App\Models\StockLocation;
 use App\Services\StockService;
+use App\Support\LocationAccess;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -23,8 +24,8 @@ class Create extends Component
 
     public function mount(): void
     {
-        $defaultLocation = StockLocation::where('code', 'magasin')->first();
-        $this->location_id = $defaultLocation?->id;
+        $this->location_id = LocationAccess::assignedLocationId()
+            ?? StockLocation::where('code', 'magasin')->first()?->id;
 
         $this->items = [
             ['product_id' => null, 'quantity' => null],
@@ -112,6 +113,7 @@ class Create extends Component
             return;
         }
 
+        LocationAccess::ensureLocationAllowed($data['location_id']);
         $location = StockLocation::findOrFail($data['location_id']);
         foreach ($filteredItems as $item) {
             $product = Product::findOrFail($item['product_id']);
@@ -234,10 +236,11 @@ class Create extends Component
     public function render()
     {
         $customers = Customer::orderBy('name')->get();
-        $locations = StockLocation::orderBy('name')->get();
+        $locations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
         $products = Product::orderBy('name')->get();
+        $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
 
-        return view('livewire.sales.create', compact('customers', 'locations', 'products'))
+        return view('livewire.sales.create', compact('customers', 'locations', 'products', 'canSelectAnyLocation'))
             ->layout('layouts.app');
     }
 }

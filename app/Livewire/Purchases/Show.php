@@ -8,6 +8,7 @@ use App\Models\PurchaseTransfer;
 use App\Models\StockLocation;
 use App\Models\StockMovement;
 use App\Services\StockService;
+use App\Support\LocationAccess;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Attributes\Validate;
@@ -33,9 +34,14 @@ class Show extends Component
 
     public function mount(PurchaseOrder $purchaseOrder): void
     {
+        if (!LocationAccess::hasGlobalAccess()) {
+            LocationAccess::ensureLocationAllowed($purchaseOrder->receive_location_id, message: 'Acces non autorise a cet achat.');
+        }
+
         $this->purchaseOrder = $purchaseOrder->load(['supplier', 'items.product', 'transfers', 'attachments', 'receiveLocation']);
-        $defaultLocation = StockLocation::where('code', 'depot')->first();
-        $this->receive_location_id = $purchaseOrder->receive_location_id ?? $defaultLocation?->id;
+        $defaultLocationId = LocationAccess::assignedLocationId()
+            ?? StockLocation::where('code', 'depot')->first()?->id;
+        $this->receive_location_id = $purchaseOrder->receive_location_id ?? $defaultLocationId;
 
         foreach ($this->purchaseOrder->items as $item) {
             $this->receivedQuantities[$item->id] = $item->received_quantity ?? $item->quantity;
@@ -103,6 +109,7 @@ class Show extends Component
         $data = $this->validate([
             'receive_location_id' => ['required', 'exists:stock_locations,id'],
         ]);
+        LocationAccess::ensureLocationAllowed((int) $data['receive_location_id']);
 
         DB::transaction(function () use ($stockService, $data) {
             $destination = StockLocation::findOrFail($data['receive_location_id']);
@@ -162,9 +169,10 @@ class Show extends Component
 
     public function render()
     {
-        $locations = StockLocation::orderBy('name')->get();
+        $locations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
+        $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
 
-        return view('livewire.purchases.show', compact('locations'))
+        return view('livewire.purchases.show', compact('locations', 'canSelectAnyLocation'))
             ->layout('layouts.app');
     }
 }

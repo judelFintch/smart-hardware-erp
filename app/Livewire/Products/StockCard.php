@@ -4,6 +4,7 @@ namespace App\Livewire\Products;
 
 use App\Models\Product;
 use App\Models\StockMovement;
+use App\Support\LocationAccess;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -23,6 +24,7 @@ class StockCard extends Component
     {
         $this->product->load([
             'unit',
+            'stockBalances' => fn ($query) => LocationAccess::filterByLocation($query, 'location_id'),
             'stockBalances.location',
         ]);
 
@@ -40,12 +42,14 @@ class StockCard extends Component
         $movements = StockMovement::query()
             ->with(['fromLocation', 'toLocation'])
             ->where('product_id', $this->product->id)
+            ->when(!LocationAccess::hasGlobalAccess(), fn ($query) => LocationAccess::filterByLocation($query, ['from_location_id', 'to_location_id']))
             ->orderByDesc('occurred_at')
             ->orderByDesc('id')
             ->paginate($this->perPage);
 
         $lastMovementAt = StockMovement::query()
             ->where('product_id', $this->product->id)
+            ->when(!LocationAccess::hasGlobalAccess(), fn ($query) => LocationAccess::filterByLocation($query, ['from_location_id', 'to_location_id']))
             ->orderByDesc('occurred_at')
             ->orderByDesc('id')
             ->first()?->occurred_at;

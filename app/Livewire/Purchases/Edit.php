@@ -8,6 +8,7 @@ use App\Models\PurchaseOrderItem;
 use App\Models\StockLocation;
 use App\Models\Supplier;
 use App\Services\StockService;
+use App\Support\LocationAccess;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -32,6 +33,10 @@ class Edit extends Component
 
     public function mount(PurchaseOrder $purchaseOrder): void
     {
+        if (!LocationAccess::hasGlobalAccess()) {
+            LocationAccess::ensureLocationAllowed($purchaseOrder->receive_location_id, message: 'Acces non autorise a cet achat.');
+        }
+
         $this->purchaseOrder = $purchaseOrder->load(['items', 'receiveLocation']);
         $this->supplier_id = $purchaseOrder->supplier_id;
         $this->type = $purchaseOrder->type;
@@ -105,6 +110,10 @@ class Edit extends Component
             $this->addError('items', 'Ajoute au moins un article.');
             return;
         }
+        if (!empty($data['receive_location_id'])) {
+            LocationAccess::ensureLocationAllowed((int) $data['receive_location_id']);
+        }
+
         foreach ($filteredItems as $item) {
             if (!isset($item['unit_price']) || $item['unit_price'] === '' || !is_numeric($item['unit_price'])) {
                 $this->addError('items', 'Chaque article doit avoir un prix unitaire.');
@@ -232,9 +241,10 @@ class Edit extends Component
     {
         $suppliers = Supplier::orderBy('name')->get();
         $products = Product::orderBy('name')->get();
-        $locations = StockLocation::orderBy('name')->get();
+        $locations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
+        $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
 
-        return view('livewire.purchases.edit', compact('suppliers', 'products', 'locations'))
+        return view('livewire.purchases.edit', compact('suppliers', 'products', 'locations', 'canSelectAnyLocation'))
             ->layout('layouts.app');
     }
 }

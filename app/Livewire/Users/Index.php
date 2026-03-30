@@ -3,6 +3,7 @@
 namespace App\Livewire\Users;
 
 use App\Models\User;
+use App\Support\LocationAccess;
 use Livewire\Component;
 use Livewire\WithPagination;
 
@@ -24,7 +25,10 @@ class Index extends Component
 
     public function render()
     {
-        $users = User::orderBy('name')->paginate($this->perPage);
+        $users = User::with('stockLocation')
+            ->when(!LocationAccess::hasGlobalAccess(), fn ($query) => $query->where('stock_location_id', LocationAccess::assignedLocationId()))
+            ->orderBy('name')
+            ->paginate($this->perPage);
 
         return view('livewire.users.index', compact('users'))
             ->layout('layouts.app');

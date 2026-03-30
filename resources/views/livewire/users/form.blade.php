@@ -20,11 +20,21 @@
             </div>
             <div>
                 <label class="block text-sm font-medium">Rôle</label>
-                <select wire:model.defer="role" class="input" required>
+                <select wire:model.live="role" class="input" required>
                     <option value="owner">Owner</option>
                     <option value="manager">Manager</option>
                     <option value="seller">Seller</option>
                 </select>
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Magasin ou dépôt affecté</label>
+                <select wire:model.defer="stock_location_id" class="input" @disabled(!$canSelectAnyLocation && $role !== 'owner')>
+                    <option value="">-- Aucun / Administrateur --</option>
+                    @foreach ($locations as $location)
+                        <option value="{{ $location->id }}">{{ $location->name }} ({{ $location->code }})</option>
+                    @endforeach
+                </select>
+                @error('stock_location_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
         </div>
 

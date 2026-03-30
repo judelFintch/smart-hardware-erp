@@ -39,7 +39,7 @@
             </div>
             <div>
                 <label class="block text-sm font-medium">Lieu de réception</label>
-                <select wire:model.defer="receive_location_id" class="input">
+                <select wire:model.defer="receive_location_id" class="input" @disabled(!$canSelectAnyLocation)>
                     <option value="">-- Dépôt par défaut --</option>
                     @foreach ($locations as $location)
                         <option value="{{ $location->id }}">{{ $location->name }}</option>

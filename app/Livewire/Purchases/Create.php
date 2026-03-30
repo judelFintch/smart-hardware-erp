@@ -9,6 +9,7 @@ use App\Models\StockLocation;
 use App\Models\StockMovement;
 use App\Models\Supplier;
 use App\Services\StockService;
+use App\Support\LocationAccess;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -31,8 +32,8 @@ class Create extends Component
 
     public function mount(): void
     {
-        $defaultLocation = StockLocation::where('code', 'depot')->first();
-        $this->receive_location_id = $defaultLocation?->id;
+        $this->receive_location_id = LocationAccess::assignedLocationId()
+            ?? StockLocation::where('code', 'depot')->first()?->id;
 
         $this->items = [
             ['product_id' => null, 'quantity' => null, 'received_quantity' => null, 'unit_price' => null],
@@ -81,6 +82,10 @@ class Create extends Component
         if (count($filteredItems) === 0) {
             $this->addError('items', 'Ajoute au moins un article.');
             return;
+        }
+
+        if (!empty($data['receive_location_id'])) {
+            LocationAccess::ensureLocationAllowed((int) $data['receive_location_id']);
         }
 
         DB::transaction(function () use ($data, $filteredItems, $stockService) {
@@ -251,9 +256,10 @@ class Create extends Component
     {
         $suppliers = Supplier::orderBy('name')->get();
         $products = Product::orderBy('name')->get();
-        $locations = StockLocation::orderBy('name')->get();
+        $locations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
+        $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
 
-        return view('livewire.purchases.create', compact('suppliers', 'products', 'locations'))
+        return view('livewire.purchases.create', compact('suppliers', 'products', 'locations', 'canSelectAnyLocation'))
             ->layout('layouts.app');
     }
 }

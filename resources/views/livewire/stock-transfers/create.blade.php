@@ -10,9 +10,9 @@
         <div class="form-grid">
             <div>
                 <label class="block text-sm font-medium">De</label>
-                <select wire:model.defer="from_location_id" class="input" required>
+                <select wire:model.defer="from_location_id" class="input" required @disabled(!$canSelectAnyLocation)>
                     <option value="">-- Choisir --</option>
-                    @foreach ($locations as $location)
+                    @foreach ($fromLocations as $location)
                         <option value="{{ $location->id }}">{{ $location->name }}</option>
                     @endforeach
                 </select>
@@ -22,7 +22,7 @@
                 <label class="block text-sm font-medium">Vers</label>
                 <select wire:model.defer="to_location_id" class="input" required>
                     <option value="">-- Choisir --</option>
-                    @foreach ($locations as $location)
+                    @foreach ($toLocations as $location)
                         <option value="{{ $location->id }}">{{ $location->name }}</option>
                     @endforeach
                 </select>

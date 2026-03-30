@@ -48,6 +48,7 @@
                             <th class="px-4 py-3">Utilisateur</th>
                             <th class="px-4 py-3">Email</th>
                             <th class="px-4 py-3">Rôle</th>
+                            <th class="px-4 py-3">Affectation</th>
                             <th class="px-4 py-3 text-right">Actions</th>
                         </tr>
                     </thead>
@@ -61,6 +62,9 @@
                                 <td class="px-4 py-4 text-sm text-slate-600">{{ $user->email }}</td>
                                 <td class="px-4 py-4">
                                     <span class="inline-flex rounded-full bg-cyan-100 px-2.5 py-1 text-xs font-medium text-cyan-700">{{ $user->role }}</span>
+                                </td>
+                                <td class="px-4 py-4 text-sm text-slate-600">
+                                    {{ $user->stockLocation?->name ?? ($user->role === 'owner' ? 'Tous les emplacements' : 'Non affecté') }}
                                 </td>
                                 <td class="px-4 py-4">
                                     <div class="flex flex-wrap justify-end gap-2">

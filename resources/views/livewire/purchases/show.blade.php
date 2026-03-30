@@ -131,7 +131,7 @@
                         <div class="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
                             <div class="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
                                 <label class="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Entité qui reçoit la marchandise</label>
-                                <select wire:model.defer="receive_location_id" class="input mt-2">
+                                <select wire:model.defer="receive_location_id" class="input mt-2" @disabled(!$canSelectAnyLocation)>
                                     <option value="">Choisir dépôt ou magasin</option>
                                     @foreach ($locations as $location)
                                         <option value="{{ $location->id }}">{{ $location->name }} ({{ $location->code }})</option>

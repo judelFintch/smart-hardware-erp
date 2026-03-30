@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\Concerns\PreservesUniqueValuesOnSoftDelete;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -25,6 +26,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
+        'stock_location_id',
     ];
 
     /**
@@ -53,5 +55,15 @@ class User extends Authenticatable implements MustVerifyEmail
     protected function uniqueSoftDeleteColumns(): array
     {
         return ['email'];
+    }
+
+    public function stockLocation(): BelongsTo
+    {
+        return $this->belongsTo(StockLocation::class, 'stock_location_id');
+    }
+
+    public function isAdministrator(): bool
+    {
+        return $this->role === 'owner';
     }
 }

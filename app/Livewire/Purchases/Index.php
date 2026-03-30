@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\Supplier;
+use App\Support\LocationAccess;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -24,7 +25,7 @@ class Index extends Component
 
     public function export()
     {
-        return Excel::download(new PurchasesExport(), 'purchases.xlsx');
+        return Excel::download(new PurchasesExport(LocationAccess::assignedLocationId()), 'purchases.xlsx');
     }
 
     public function importCsv(): void
@@ -32,6 +33,8 @@ class Index extends Component
         $this->validate([
             'importFile' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
         ]);
+
+        $receiveLocationId = LocationAccess::assignedLocationId();
 
         $path = $this->importFile->getRealPath();
         $handle = fopen($path, 'r');
@@ -95,6 +98,7 @@ class Index extends Component
                 'accessory_fees_local' => 0,
                 'transport_fees_local' => 0,
                 'total_cost_local' => 0,
+                'receive_location_id' => $receiveLocationId,
             ]);
 
             $subtotal = 0;
@@ -132,7 +136,7 @@ class Index extends Component
     public function exportPdf()
     {
         $company = CompanySetting::first();
-        $purchases = PurchaseOrder::with('supplier')->orderByDesc('id')->get();
+        $purchases = LocationAccess::filterPurchases(PurchaseOrder::with('supplier')->orderByDesc('id'))->get();
 
         $pdf = Pdf::loadView('exports.purchases', compact('company', 'purchases'));
 
@@ -141,7 +145,7 @@ class Index extends Component
 
     public function render()
     {
-        $query = PurchaseOrder::with(['supplier', 'receiveLocation'])->orderByDesc('id');
+        $query = LocationAccess::filterPurchases(PurchaseOrder::with(['supplier', 'receiveLocation'])->orderByDesc('id'));
         $purchases = (clone $query)->paginate($this->perPage);
 
         $stats = [

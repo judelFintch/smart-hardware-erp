@@ -9,6 +9,10 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class InventoryExport implements FromCollection, WithHeadings
 {
+    public function __construct(private readonly ?int $locationId = null)
+    {
+    }
+
     public function headings(): array
     {
         return ['Inventaire', 'Date', 'Magasin', 'Article', 'Système', 'Compté', 'Différence', 'Valeur'];
@@ -17,6 +21,7 @@ class InventoryExport implements FromCollection, WithHeadings
     public function collection(): Collection
     {
         return InventoryCountItem::with(['inventoryCount.location', 'product'])
+            ->when($this->locationId, fn ($query, $locationId) => $query->whereHas('inventoryCount', fn ($builder) => $builder->where('location_id', $locationId)))
             ->orderByDesc('id')
             ->get()
             ->map(function (InventoryCountItem $item) {

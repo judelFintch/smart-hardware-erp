@@ -32,7 +32,7 @@
             </div>
             <div>
                 <label class="block text-xs font-medium text-slate-600">Magasin de vente</label>
-                <select wire:model.live="location_id" class="input" required>
+                <select wire:model.live="location_id" class="input" required @disabled(!$canSelectAnyLocation)>
                     <option value="">-- Choisir --</option>
                     @foreach ($locations as $location)
                         <option value="{{ $location->id }}">{{ $location->name }} ({{ $location->code }})</option>

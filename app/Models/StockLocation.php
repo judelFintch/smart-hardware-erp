@@ -37,6 +37,11 @@ class StockLocation extends Model
         return $this->hasMany(SaleItem::class, 'location_id');
     }
 
+    public function users(): HasMany
+    {
+        return $this->hasMany(User::class, 'stock_location_id');
+    }
+
     protected function uniqueSoftDeleteColumns(): array
     {
         return ['code'];

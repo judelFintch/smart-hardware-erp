@@ -5,6 +5,7 @@ namespace App\Livewire\Sales;
 use App\Exports\SalesExport;
 use App\Models\CompanySetting;
 use App\Models\Sale;
+use App\Support\LocationAccess;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -18,13 +19,13 @@ class Index extends Component
 
     public function export()
     {
-        return Excel::download(new SalesExport(), 'sales.xlsx');
+        return Excel::download(new SalesExport(LocationAccess::assignedLocationId()), 'sales.xlsx');
     }
 
     public function exportPdf()
     {
         $company = CompanySetting::first();
-        $sales = Sale::with('customer')->orderByDesc('sold_at')->get();
+        $sales = LocationAccess::filterSales(Sale::with('customer')->orderByDesc('sold_at'))->get();
 
         $pdf = Pdf::loadView('exports.sales', compact('company', 'sales'));
 
@@ -33,7 +34,7 @@ class Index extends Component
 
     public function render()
     {
-        $query = Sale::with('customer')->orderByDesc('sold_at');
+        $query = LocationAccess::filterSales(Sale::with('customer')->orderByDesc('sold_at'));
         $sales = (clone $query)->paginate($this->perPage);
 
         $stats = [

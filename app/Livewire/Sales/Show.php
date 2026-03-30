@@ -9,6 +9,7 @@ use App\Models\SalePayment;
 use App\Models\StockBalance;
 use App\Models\StockLocation;
 use App\Services\StockService;
+use App\Support\LocationAccess;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -27,6 +28,11 @@ class Show extends Component
 
     public function mount(Sale $sale): void
     {
+        if (!LocationAccess::hasGlobalAccess()) {
+            $allowedSale = LocationAccess::filterSales(Sale::query()->whereKey($sale->id))->exists();
+            abort_unless($allowedSale, 403, 'Acces non autorise a cette vente.');
+        }
+
         $this->sale = $sale->load(['customer', 'items.product', 'payments']);
         $this->return_product_id = $this->sale->items->first()?->product_id;
     }
@@ -73,7 +79,15 @@ class Show extends Component
             $product = Product::findOrFail($data['return_product_id']);
             $quantity = (float) $data['return_quantity'];
 
-            $magasin = StockLocation::where('code', 'magasin')->firstOrFail();
+            $saleItem = $this->sale->items()
+                ->where('product_id', $product->id)
+                ->latest('id')
+                ->first();
+            $magasin = $saleItem?->location_id
+                ? StockLocation::findOrFail($saleItem->location_id)
+                : StockLocation::findOrFail(LocationAccess::assignedLocationId() ?? StockLocation::where('code', 'magasin')->firstOrFail()->id);
+
+            LocationAccess::ensureLocationAllowed($magasin->id);
             $balance = StockBalance::where('product_id', $product->id)
                 ->where('location_id', $magasin->id)
                 ->first();

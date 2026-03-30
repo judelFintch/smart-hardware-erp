@@ -35,6 +35,7 @@ use App\Livewire\Units\Index as UnitsIndex;
 use App\Livewire\Users\Form as UsersForm;
 use App\Livewire\Users\Index as UsersIndex;
 use App\Livewire\Company\Settings as CompanySettings;
+use App\Support\LocationAccess;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -73,6 +74,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('purchases', PurchasesIndex::class)->name('purchases.index');
     Route::get('purchases/create', PurchasesCreate::class)->name('purchases.create');
     Route::get('purchases/{purchaseOrder}/print', function (PurchaseOrder $purchaseOrder) {
+        if (!LocationAccess::hasGlobalAccess()) {
+            LocationAccess::ensureLocationAllowed($purchaseOrder->receive_location_id, message: 'Acces non autorise a cet achat.');
+        }
+
         $company = CompanySetting::first();
         $purchaseOrder->load(['supplier', 'items.product']);
 
@@ -104,6 +109,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('sales/create', SalesCreate::class)->name('sales.create');
     Route::get('sales/{sale}', SalesShow::class)->name('sales.show');
     Route::get('sales/{sale}/print', function (Sale $sale) {
+        if (!LocationAccess::hasGlobalAccess()) {
+            $allowedSale = LocationAccess::filterSales(Sale::query()->whereKey($sale->id))->exists();
+            abort_unless($allowedSale, 403, 'Acces non autorise a cette vente.');
+        }
+
         $company = CompanySetting::first();
         $sale->load(['customer', 'items.product']);
 

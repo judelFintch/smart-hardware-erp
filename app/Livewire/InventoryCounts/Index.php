@@ -9,6 +9,7 @@ use App\Models\InventoryCountItem;
 use App\Models\Product;
 use App\Models\StockLocation;
 use App\Services\StockService;
+use App\Support\LocationAccess;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -25,7 +26,7 @@ class Index extends Component
 
     public function export()
     {
-        return Excel::download(new InventoryExport(), 'inventaires.xlsx');
+        return Excel::download(new InventoryExport(LocationAccess::assignedLocationId()), 'inventaires.xlsx');
     }
 
     public function importCsv(StockService $stockService): void
@@ -48,7 +49,7 @@ class Index extends Component
         }
 
         $columns = array_map('strtolower', $header);
-        $locationId = StockLocation::where('code', 'depot')->first()?->id;
+        $locationId = LocationAccess::assignedLocationId() ?? StockLocation::where('code', 'depot')->first()?->id;
         if (!$locationId) {
             fclose($handle);
             $this->addError('importFile', 'Aucun dépôt trouvé pour importer l’inventaire.');
@@ -111,7 +112,10 @@ class Index extends Component
     public function exportPdf()
     {
         $company = CompanySetting::first();
-        $items = InventoryCountItem::with(['inventoryCount.location', 'product'])->orderByDesc('id')->get();
+        $items = InventoryCountItem::with(['inventoryCount.location', 'product'])
+            ->whereHas('inventoryCount', fn ($query) => LocationAccess::filterInventoryCounts($query))
+            ->orderByDesc('id')
+            ->get();
         $pdf = Pdf::loadView('exports.inventory', compact('company', 'items'));
 
         return response()->streamDownload(fn () => print($pdf->output()), 'inventaires.pdf');
@@ -119,7 +123,7 @@ class Index extends Component
 
     public function render()
     {
-        $latestCount = InventoryCount::with('items')
+        $latestCount = LocationAccess::filterInventoryCounts(InventoryCount::with('items'))
             ->orderByDesc('id')
             ->first();
 
@@ -152,7 +156,7 @@ class Index extends Component
             ];
         }
 
-        $counts = InventoryCount::with('location')
+        $counts = LocationAccess::filterInventoryCounts(InventoryCount::with('location'))
             ->orderByDesc('id')
             ->paginate($this->perPage);
 

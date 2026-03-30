@@ -8,6 +8,7 @@ use App\Models\StockBalance;
 use App\Models\StockLocation;
 use App\Models\Unit;
 use App\Services\StockService;
+use App\Support\LocationAccess;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
@@ -27,8 +28,10 @@ class Index extends Component
 
     public function mount(): void
     {
-        $defaultLocation = StockLocation::where('code', 'depot')->first();
-        $this->import_location_id = $defaultLocation?->id;
+        $defaultLocationId = LocationAccess::assignedLocationId()
+            ?? StockLocation::where('code', 'depot')->first()?->id;
+        $this->location_id = $defaultLocationId;
+        $this->import_location_id = $defaultLocationId;
     }
 
     public function updatingSearch(): void
@@ -57,6 +60,9 @@ class Index extends Component
             'importFile' => ['required', 'file', 'mimes:csv,txt,xls,xlsx', 'max:5120'],
             'import_location_id' => ['nullable', 'exists:stock_locations,id'],
         ]);
+        if ($this->import_location_id) {
+            LocationAccess::ensureLocationAllowed((int) $this->import_location_id);
+        }
 
         $rows = $this->extractImportRows();
         if (empty($rows)) {
@@ -146,6 +152,11 @@ class Index extends Component
     public function render()
     {
         $selectedLocationId = $this->location_id;
+        if (!LocationAccess::hasGlobalAccess()) {
+            $selectedLocationId = LocationAccess::assignedLocationId();
+            $this->location_id = $selectedLocationId;
+            $this->import_location_id = $selectedLocationId;
+        }
 
         $products = Product::query()
             ->with('unit')
@@ -189,10 +200,11 @@ class Index extends Component
                 ->count(),
         ];
 
-        $locations = StockLocation::orderBy('name')->get();
+        $locations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
         $selectedLocation = $locations->firstWhere('id', $selectedLocationId);
+        $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
 
-        return view('livewire.products.index', compact('products', 'stats', 'locations', 'selectedLocation'))
+        return view('livewire.products.index', compact('products', 'stats', 'locations', 'selectedLocation', 'canSelectAnyLocation'))
             ->layout('layouts.app');
     }
 }

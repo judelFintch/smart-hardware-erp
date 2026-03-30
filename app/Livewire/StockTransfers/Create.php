@@ -6,6 +6,7 @@ use App\Models\Product;
 use App\Models\StockBalance;
 use App\Models\StockLocation;
 use App\Services\StockService;
+use App\Support\LocationAccess;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -17,6 +18,7 @@ class Create extends Component
 
     public function mount(): void
     {
+        $this->from_location_id = LocationAccess::assignedLocationId();
         $this->items = [
             ['product_id' => null, 'quantity' => null],
             ['product_id' => null, 'quantity' => null],
@@ -53,6 +55,7 @@ class Create extends Component
             return;
         }
 
+        LocationAccess::ensureLocationAllowed((int) $data['from_location_id']);
         $from = StockLocation::findOrFail($data['from_location_id']);
         $to = StockLocation::findOrFail($data['to_location_id']);
 
@@ -103,9 +106,14 @@ class Create extends Component
     public function render()
     {
         $products = Product::orderBy('name')->get();
-        $locations = StockLocation::orderBy('name')->get();
+        $fromLocations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
+        $toLocations = StockLocation::query()
+            ->when(LocationAccess::assignedLocationId(), fn ($query, $locationId) => $query->whereKeyNot($locationId))
+            ->orderBy('name')
+            ->get();
+        $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
 
-        return view('livewire.stock-transfers.create', compact('products', 'locations'))
+        return view('livewire.stock-transfers.create', compact('products', 'fromLocations', 'toLocations', 'canSelectAnyLocation'))
             ->layout('layouts.app');
     }
 }

@@ -10,7 +10,7 @@
             </div>
             <div class="flex flex-wrap gap-2 items-center">
                 <form wire:submit.prevent="importCsv" class="flex flex-wrap gap-2 items-center">
-                    <select wire:model="import_location_id" class="input">
+                    <select wire:model="import_location_id" class="input" @disabled(!$canSelectAnyLocation)>
                         <option value="">Entité du stock</option>
                         @foreach ($locations as $location)
                             <option value="{{ $location->id }}">{{ $location->name }} ({{ $location->code }})</option>
@@ -57,7 +57,7 @@
             </div>
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Entité</label>
-                <select wire:model.live="location_id" class="input mt-2">
+                <select wire:model.live="location_id" class="input mt-2" @disabled(!$canSelectAnyLocation)>
                     <option value="">Toutes les entités</option>
                     @foreach ($locations as $location)
                         <option value="{{ $location->id }}">{{ $location->name }} ({{ $location->code }})</option>

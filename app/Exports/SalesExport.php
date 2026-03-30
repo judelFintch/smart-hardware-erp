@@ -9,6 +9,10 @@ use Maatwebsite\Excel\Concerns\WithHeadings;
 
 class SalesExport implements FromCollection, WithHeadings
 {
+    public function __construct(private readonly ?int $locationId = null)
+    {
+    }
+
     public function headings(): array
     {
         return ['ID', 'Client', 'Type', 'Statut', 'Total', 'Payé', 'Date'];
@@ -17,6 +21,7 @@ class SalesExport implements FromCollection, WithHeadings
     public function collection(): Collection
     {
         return Sale::with('customer')
+            ->when($this->locationId, fn ($query, $locationId) => $query->whereHas('items', fn ($builder) => $builder->where('location_id', $locationId)))
             ->orderByDesc('sold_at')
             ->get()
             ->map(function (Sale $sale) {
