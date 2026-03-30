@@ -4,6 +4,7 @@ namespace App\Support;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 class LocationAccess
 {
@@ -24,7 +25,7 @@ class LocationAccess
         return static::user($user)?->stock_location_id;
     }
 
-    public static function restrictLocations(Builder $query, ?User $user = null): Builder
+    public static function restrictLocations(Builder|Relation $query, ?User $user = null): Builder|Relation
     {
         if (static::hasGlobalAccess($user)) {
             return $query;
@@ -37,7 +38,7 @@ class LocationAccess
             : $query->whereRaw('1 = 0');
     }
 
-    public static function filterByLocation(Builder $query, string|array $columns, ?User $user = null): Builder
+    public static function filterByLocation(Builder|Relation $query, string|array $columns, ?User $user = null): Builder|Relation
     {
         if (static::hasGlobalAccess($user)) {
             return $query;
@@ -50,14 +51,14 @@ class LocationAccess
 
         $columns = (array) $columns;
 
-        return $query->where(function (Builder $builder) use ($columns, $locationId) {
+        return $query->where(function ($builder) use ($columns, $locationId) {
             foreach ($columns as $column) {
                 $builder->orWhere($column, $locationId);
             }
         });
     }
 
-    public static function filterSales(Builder $query, ?User $user = null): Builder
+    public static function filterSales(Builder|Relation $query, ?User $user = null): Builder|Relation
     {
         if (static::hasGlobalAccess($user)) {
             return $query;
@@ -71,12 +72,12 @@ class LocationAccess
         return $query->whereHas('items', fn (Builder $builder) => $builder->where('location_id', $locationId));
     }
 
-    public static function filterPurchases(Builder $query, ?User $user = null): Builder
+    public static function filterPurchases(Builder|Relation $query, ?User $user = null): Builder|Relation
     {
         return static::filterByLocation($query, 'receive_location_id', $user);
     }
 
-    public static function filterInventoryCounts(Builder $query, ?User $user = null): Builder
+    public static function filterInventoryCounts(Builder|Relation $query, ?User $user = null): Builder|Relation
     {
         return static::filterByLocation($query, 'location_id', $user);
     }
