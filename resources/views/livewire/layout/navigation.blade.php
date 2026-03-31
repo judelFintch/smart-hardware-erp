@@ -5,6 +5,14 @@ use Livewire\Volt\Component;
 
 new class extends Component
 {
+    public function markNotificationsAsRead(): void
+    {
+        \App\Models\AppNotification::query()
+            ->where('user_id', auth()->id())
+            ->whereNull('read_at')
+            ->update(['read_at' => now()]);
+    }
+
     public function logout(Logout $logout): void
     {
         $logout();
@@ -14,6 +22,10 @@ new class extends Component
 
 @php
     $isManager = in_array(auth()->user()->role, ['owner', 'manager'], true);
+    $unreadNotifications = \App\Models\AppNotification::query()
+        ->where('user_id', auth()->id())
+        ->whereNull('read_at')
+        ->count();
 @endphp
 
 <div>
@@ -85,7 +97,13 @@ new class extends Component
                     <a class="nav-link {{ request()->routeIs('reports.activity') ? 'active' : '' }}" href="{{ route('reports.activity') }}" wire:navigate>
                         Journal d'activité
                     </a>
+                    <a class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}" href="{{ route('notifications.index') }}" wire:navigate>
+                        Notifications
+                    </a>
                     <div class="sidebar-title">Système</div>
+                    <a class="nav-link {{ request()->routeIs('system.backups') ? 'active' : '' }}" href="{{ route('system.backups') }}" wire:navigate>
+                        Sauvegarde
+                    </a>
                     <a class="nav-link {{ request()->routeIs('trash.*') ? 'active' : '' }}" href="{{ route('trash.index') }}" wire:navigate>
                         Corbeille
                     </a>
@@ -109,6 +127,11 @@ new class extends Component
                 </div>
             </div>
             <div class="flex items-center gap-2">
+                @if ($isManager)
+                    <div class="relative">
+                        <a class="btn btn-secondary" href="{{ route('notifications.index') }}" wire:navigate>Notifications @if($unreadNotifications > 0)<span class="ml-1 rounded-full bg-cyan-600 px-2 py-0.5 text-xs text-white">{{ $unreadNotifications }}</span>@endif</a>
+                    </div>
+                @endif
                 <a class="btn btn-secondary" href="{{ route('profile') }}" wire:navigate>Profil</a>
                 <button class="btn btn-primary" wire:click="logout" type="button">Déconnexion</button>
                 <button x-data @click="$dispatch('toggle-mobile-nav')" class="btn btn-secondary lg:hidden">Menu</button>
@@ -156,7 +179,9 @@ new class extends Component
                     <div class="sidebar-title">Analyse</div>
                     <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.financial') }}" wire:navigate>Rapports</a>
                     <a class="nav-link {{ request()->routeIs('reports.activity') ? 'active' : '' }}" href="{{ route('reports.activity') }}" wire:navigate>Journal d'activité</a>
+                    <a class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}" href="{{ route('notifications.index') }}" wire:navigate>Notifications</a>
                     <div class="sidebar-title">Système</div>
+                    <a class="nav-link {{ request()->routeIs('system.backups') ? 'active' : '' }}" href="{{ route('system.backups') }}" wire:navigate>Sauvegarde</a>
                     <a class="nav-link {{ request()->routeIs('trash.*') ? 'active' : '' }}" href="{{ route('trash.index') }}" wire:navigate>Corbeille</a>
                     <a class="nav-link {{ request()->routeIs('system.health') ? 'active' : '' }}" href="{{ route('system.health') }}" wire:navigate>Santé système</a>
                 @endif

@@ -17,6 +17,13 @@ class CompanySetting extends Model
         'email',
         'address',
         'currency',
+        'currency_symbol',
+        'timezone',
+        'date_format',
+        'purchase_prefix',
+        'sale_prefix',
+        'tax_rate',
+        'low_stock_threshold',
         'logo_path',
         'invoice_footer',
     ];
