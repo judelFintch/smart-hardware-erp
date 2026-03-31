@@ -93,8 +93,8 @@
                             <th class="px-4 py-3">Références</th>
                             <th class="px-4 py-3">Unité</th>
                             <th class="px-4 py-3 text-right">Qté stock</th>
-                            <th class="px-4 py-3 text-right">Coût moyen</th>
-                            <th class="px-4 py-3 text-right">Prix vente</th>
+                            <th class="px-4 py-3 text-right">PU</th>
+                            <th class="px-4 py-3 text-right">PV</th>
                             <th class="px-4 py-3 text-right">Actions</th>
                         </tr>
                     </thead>

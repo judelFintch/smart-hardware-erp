@@ -33,7 +33,7 @@
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Valeur du stock</div>
             <div class="mt-3 text-3xl font-semibold text-slate-900">{{ number_format($stockValue, 2) }}</div>
-            <div class="mt-2 text-sm text-slate-500">Quantité en stock multipliée par le coût moyen par emplacement.</div>
+            <div class="mt-2 text-sm text-slate-500">Quantité en stock multipliée par le PU de chaque emplacement.</div>
         </div>
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Emplacements actifs</div>
@@ -61,7 +61,7 @@
                         <div class="flex items-center justify-between gap-4 px-6 py-4">
                             <div>
                                 <div class="font-medium text-slate-900">{{ $balance->location?->name ?? 'Sans emplacement' }}</div>
-                                <div class="mt-1 text-xs text-slate-500">Coût moyen {{ number_format((float) $balance->avg_cost_local, 2) }} · Prix vente {{ number_format((float) $balance->sale_price_local, 2) }}</div>
+                                <div class="mt-1 text-xs text-slate-500">PU {{ number_format((float) $balance->avg_cost_local, 2) }} · PV {{ number_format((float) $balance->sale_price_local, 2) }}</div>
                             </div>
                             <div class="text-right">
                                 <div class="text-lg font-semibold text-slate-900">{{ number_format((float) $balance->quantity, 3) }}</div>

@@ -2,20 +2,22 @@
     $itemsCount = $sale->items->count();
     $totalQuantity = (float) $sale->items->sum('quantity');
     $remaining = max(0, (float) $sale->total_amount - (float) $sale->paid_total);
+    $purchaseTotal = (float) $sale->items->sum(fn ($item) => (float) $item->unit_cost_local * (float) $item->quantity);
+    $profitTotal = (float) $sale->items->sum(fn ($item) => ((float) $item->unit_price - (float) $item->unit_cost_local) * (float) $item->quantity);
     $statusClass = $sale->status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
     $typeClass = $sale->type === 'cash' ? 'bg-cyan-100 text-cyan-700' : 'bg-violet-100 text-violet-700';
 @endphp
 
 <div class="space-y-6">
-    <div class="rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-emerald-50 p-6 shadow-sm">
-        <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-            <div class="space-y-4">
-                <div class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">
+    <div class="rounded-[26px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-emerald-50 p-5 shadow-sm">
+        <div class="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div class="space-y-3">
+                <div class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
                     Détail vente
                 </div>
                 <div>
-                    <h1 class="text-3xl font-semibold text-slate-900">Vente #{{ $sale->id }}</h1>
-                    <p class="mt-2 text-sm text-slate-500">
+                    <h1 class="text-2xl font-semibold text-slate-900">Vente #{{ $sale->id }}</h1>
+                    <p class="mt-1 text-sm text-slate-500">
                         {{ $sale->customer?->name ?? 'Client comptoir' }} ·
                         <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {{ $typeClass }}">{{ $sale->type === 'cash' ? 'Comptant' : 'Crédit' }}</span>
                         <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {{ $statusClass }}">{{ $sale->status === 'paid' ? 'Soldée' : 'Ouverte' }}</span>
@@ -30,91 +32,132 @@
         </div>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Articles</div>
-            <div class="mt-3 text-3xl font-semibold text-slate-900">{{ number_format($itemsCount) }}</div>
-            <div class="mt-2 text-sm text-slate-500">Lignes enregistrées dans la vente.</div>
-        </div>
-        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Quantité nette</div>
-            <div class="mt-3 text-3xl font-semibold text-slate-900">{{ number_format($totalQuantity, 3) }}</div>
-            <div class="mt-2 text-sm text-slate-500">Prend aussi en compte les retours déjà saisis.</div>
-        </div>
-        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Sous-total</div>
-            <div class="mt-3 text-3xl font-semibold text-slate-900">{{ number_format((float) $sale->subtotal, 2) }}</div>
-            <div class="mt-2 text-sm text-slate-500">Avant application de la remise globale.</div>
-        </div>
-        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Total payé</div>
-            <div class="mt-3 text-3xl font-semibold text-slate-900">{{ number_format((float) $sale->paid_total, 2) }}</div>
-            <div class="mt-2 text-sm text-slate-500">Montant déjà encaissé sur la vente.</div>
-        </div>
-        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Reste dû</div>
-            <div class="mt-3 text-3xl font-semibold text-slate-900">{{ number_format($remaining, 2) }}</div>
-            <div class="mt-2 text-sm text-slate-500">Solde encore attendu si la vente est à crédit.</div>
+    <div class="rounded-[24px] border border-slate-200 bg-white px-3 py-2.5 shadow-sm">
+        <div class="grid gap-x-4 gap-y-1.5 md:grid-cols-3 xl:grid-cols-7">
+            <div class="flex min-w-0 items-baseline justify-between gap-2 border-b border-slate-100 py-1.5 xl:border-b-0 xl:border-r xl:pr-3">
+                <span class="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Articles</span>
+                <span class="shrink-0 text-sm font-semibold text-slate-900">{{ number_format($itemsCount) }}</span>
+            </div>
+            <div class="flex min-w-0 items-baseline justify-between gap-2 border-b border-slate-100 py-1.5 xl:border-b-0 xl:border-r xl:px-3">
+                <span class="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Qté</span>
+                <span class="shrink-0 text-sm font-semibold text-slate-900">{{ number_format($totalQuantity, 3) }}</span>
+            </div>
+            <div class="flex min-w-0 items-baseline justify-between gap-2 border-b border-slate-100 py-1.5 xl:border-b-0 xl:border-r xl:px-3">
+                <span class="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Sous-total</span>
+                <span class="shrink-0 text-[13px] font-semibold text-slate-900">{{ number_format((float) $sale->subtotal, 2) }}</span>
+            </div>
+            <div class="flex min-w-0 items-baseline justify-between gap-2 border-b border-slate-100 py-1.5 xl:border-b-0 xl:border-r xl:px-3">
+                <span class="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Achat</span>
+                <span class="shrink-0 text-[13px] font-semibold text-slate-900">{{ number_format($purchaseTotal, 2) }}</span>
+            </div>
+            <div class="flex min-w-0 items-baseline justify-between gap-2 border-b border-slate-100 py-1.5 xl:border-b-0 xl:border-r xl:px-3">
+                <span class="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Payé</span>
+                <span class="shrink-0 text-[13px] font-semibold text-slate-900">{{ number_format((float) $sale->paid_total, 2) }}</span>
+            </div>
+            <div class="flex min-w-0 items-baseline justify-between gap-2 border-b border-slate-100 py-1.5 xl:border-b-0 xl:border-r xl:px-3">
+                <span class="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Reste</span>
+                <span class="shrink-0 text-[13px] font-semibold text-slate-900">{{ number_format($remaining, 2) }}</span>
+            </div>
+            <div class="flex min-w-0 items-baseline justify-between gap-2 py-1.5 xl:pl-3">
+                <span class="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Bénéfice</span>
+                <span class="shrink-0 text-[13px] font-semibold {{ $profitTotal >= 0 ? 'text-emerald-700' : 'text-red-600' }}">{{ number_format($profitTotal, 2) }}</span>
+            </div>
         </div>
     </div>
 
-    <div class="grid gap-6 xl:grid-cols-[1.45fr_0.95fr]">
+    <div class="grid gap-5 xl:grid-cols-[minmax(0,1.7fr)_340px]">
         <div class="rounded-[28px] border border-slate-200 bg-white shadow-sm overflow-hidden">
-            <div class="border-b border-slate-100 px-6 py-4">
-                <h2 class="text-lg font-semibold text-slate-900">Articles vendus</h2>
-                <p class="mt-1 text-sm text-slate-500">Vue détaillée des quantités, prix unitaires et totaux de ligne.</p>
+            <div class="border-b border-slate-100 px-5 py-3.5">
+                <div class="flex items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-base font-semibold text-slate-900">Articles vendus</h2>
+                        <p class="mt-0.5 text-xs text-slate-500">Prix de vente, achat et bénéfice par ligne.</p>
+                    </div>
+                    <div class="hidden text-xs text-slate-500 md:block">
+                        {{ $itemsCount }} ligne(s)
+                    </div>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
                 <table class="min-w-full">
                     <thead class="bg-slate-50/80">
-                        <tr class="text-left text-xs uppercase tracking-[0.16em] text-slate-500">
-                            <th class="px-4 py-3">Article</th>
-                            <th class="px-4 py-3 text-right">Quantité</th>
-                            <th class="px-4 py-3 text-right">Prix</th>
-                            <th class="px-4 py-3 text-right">Total</th>
+                        <tr class="text-left text-[11px] uppercase tracking-[0.14em] text-slate-500">
+                            <th class="px-5 py-3">Article</th>
+                            <th class="px-3 py-3 text-right">Qté</th>
+                            <th class="px-3 py-3 text-right">PV</th>
+                            <th class="px-3 py-3 text-right">PA</th>
+                            <th class="px-3 py-3 text-right">Vente</th>
+                            <th class="px-3 py-3 text-right">Achat</th>
+                            <th class="px-5 py-3 text-right">Bénéfice</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-100">
                         @foreach ($sale->items as $item)
+                            @php
+                                $linePurchaseTotal = (float) $item->unit_cost_local * (float) $item->quantity;
+                                $lineProfit = ((float) $item->unit_price - (float) $item->unit_cost_local) * (float) $item->quantity;
+                            @endphp
                             <tr class="hover:bg-slate-50/70">
-                                <td class="px-4 py-4">
-                                    <div class="font-medium text-slate-900">{{ $item->product->name }}</div>
-                                    <div class="mt-1 text-xs text-slate-500">{{ $item->quantity < 0 ? 'Retour enregistré sur cette ligne.' : 'Ligne de vente standard.' }}</div>
+                                <td class="px-5 py-4">
+                                    <div class="font-medium leading-5 text-slate-900">{{ $item->product->name }}</div>
+                                    <div class="mt-1 text-[11px] text-slate-500">{{ $item->quantity < 0 ? 'Retour' : 'Vente' }}</div>
                                 </td>
-                                <td class="px-4 py-4 text-right font-medium text-slate-700">{{ number_format((float) $item->quantity, 3) }}</td>
-                                <td class="px-4 py-4 text-right font-medium text-slate-700">{{ number_format((float) $item->unit_price, 2) }}</td>
-                                <td class="px-4 py-4 text-right font-semibold text-slate-900">{{ number_format((float) $item->line_total, 2) }}</td>
+                                <td class="px-3 py-4 text-right text-sm font-medium text-slate-700">{{ number_format((float) $item->quantity, 3) }}</td>
+                                <td class="px-3 py-4 text-right text-sm font-semibold text-slate-900">{{ number_format((float) $item->unit_price, 2) }}</td>
+                                <td class="px-3 py-4 text-right text-sm font-semibold text-slate-900">{{ number_format((float) $item->unit_cost_local, 2) }}</td>
+                                <td class="px-3 py-4 text-right text-sm font-semibold text-slate-900">{{ number_format((float) $item->line_total, 2) }}</td>
+                                <td class="px-3 py-4 text-right text-sm font-semibold text-slate-900">{{ number_format($linePurchaseTotal, 2) }}</td>
+                                <td class="px-5 py-4 text-right text-base font-semibold {{ $lineProfit >= 0 ? 'text-emerald-700' : 'text-red-600' }}">{{ number_format($lineProfit, 2) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
+                    <tfoot class="bg-slate-50/70">
+                        <tr class="text-sm text-slate-700">
+                            <td class="px-5 py-3 font-semibold text-slate-900">Totaux</td>
+                            <td class="px-3 py-3 text-right font-semibold text-slate-900">{{ number_format($totalQuantity, 3) }}</td>
+                            <td class="px-3 py-3"></td>
+                            <td class="px-3 py-3"></td>
+                            <td class="px-3 py-3 text-right font-semibold text-slate-900">{{ number_format((float) $sale->subtotal, 2) }}</td>
+                            <td class="px-3 py-3 text-right font-semibold text-slate-900">{{ number_format($purchaseTotal, 2) }}</td>
+                            <td class="px-5 py-3 text-right font-semibold {{ $profitTotal >= 0 ? 'text-emerald-700' : 'text-red-600' }}">{{ number_format($profitTotal, 2) }}</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
 
         <div class="space-y-6">
-            <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-                <h2 class="text-lg font-semibold text-slate-900">Résumé financier</h2>
-                <div class="mt-4 space-y-3 text-sm">
-                    <div class="flex items-center justify-between">
+            <div class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+                <h2 class="text-base font-semibold text-slate-900">Résumé financier</h2>
+                <div class="mt-4 grid gap-2">
+                    <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
                         <span class="text-slate-500">Sous-total</span>
                         <span class="font-semibold text-slate-900">{{ number_format((float) $sale->subtotal, 2) }}</span>
                     </div>
-                    <div class="flex items-center justify-between">
-                        <span class="text-slate-500">Remise globale</span>
+                    <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                        <span class="text-slate-500">Remise</span>
                         <span class="font-semibold text-slate-900">{{ number_format((float) $sale->discount_total, 2) }}</span>
                     </div>
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
                         <span class="text-slate-500">Total net</span>
                         <span class="font-semibold text-slate-900">{{ number_format((float) $sale->total_amount, 2) }}</span>
                     </div>
-                    <div class="flex items-center justify-between">
+                    <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
+                        <span class="text-slate-500">Total achat</span>
+                        <span class="font-semibold text-slate-900">{{ number_format($purchaseTotal, 2) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between rounded-xl bg-emerald-50 px-3 py-2 text-sm">
+                        <span class="text-emerald-700">Bénéfice</span>
+                        <span class="font-semibold {{ $profitTotal >= 0 ? 'text-emerald-700' : 'text-red-600' }}">{{ number_format($profitTotal, 2) }}</span>
+                    </div>
+                    <div class="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 text-sm">
                         <span class="text-slate-500">Payé</span>
                         <span class="font-semibold text-slate-900">{{ number_format((float) $sale->paid_total, 2) }}</span>
                     </div>
-                    <div class="flex items-center justify-between border-t border-slate-100 pt-3">
-                        <span class="text-slate-500">Reste dû</span>
-                        <span class="text-lg font-semibold text-slate-900">{{ number_format($remaining, 2) }}</span>
+                    <div class="flex items-center justify-between rounded-xl bg-slate-900 px-3 py-2 text-sm">
+                        <span class="text-slate-300">Reste dû</span>
+                        <span class="text-base font-semibold text-white">{{ number_format($remaining, 2) }}</span>
                     </div>
                 </div>
             </div>
