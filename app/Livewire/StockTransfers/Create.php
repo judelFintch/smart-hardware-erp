@@ -64,6 +64,24 @@ class Create extends Component
         $this->items = array_values($this->items);
     }
 
+    public function fillMaxQuantity(int $index): void
+    {
+        $productId = (int) ($this->items[$index]['product_id'] ?? 0);
+
+        if (!$this->from_location_id || $productId === 0) {
+            return;
+        }
+
+        $availableQuantity = (float) (StockBalance::query()
+            ->where('location_id', $this->from_location_id)
+            ->where('product_id', $productId)
+            ->value('quantity') ?? 0);
+
+        $this->items[$index]['quantity'] = $availableQuantity > 0
+            ? number_format($availableQuantity, 3, '.', '')
+            : null;
+    }
+
     public function save(StockService $stockService): void
     {
         $data = $this->validate([

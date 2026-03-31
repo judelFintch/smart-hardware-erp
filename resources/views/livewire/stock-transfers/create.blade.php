@@ -47,6 +47,8 @@
                         <span class="font-medium text-slate-900">{{ $fromLocation->name }}</span>
                         <span class="mx-1 text-slate-400">→</span>
                         <span class="font-medium text-slate-900">{{ $toLocation->name }}</span>
+                        <span class="ml-2 text-slate-400">•</span>
+                        <span class="ml-2">{{ count($availableQuantities) }} article(s) disponible(s) dans la source</span>
                     @elseif ($fromLocation)
                         Articles filtrés selon le stock disponible dans <span class="font-medium text-slate-900">{{ $fromLocation->name }}</span>.
                     @else
@@ -58,10 +60,11 @@
             <div class="border-t border-slate-100 px-3 py-3">
                 @error('items') <div class="mb-2 text-xs text-red-600">{{ $message }}</div> @enderror
 
-                <div class="hidden grid-cols-[170px_84px_84px_84px] gap-2 px-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400 md:grid">
+                <div class="hidden grid-cols-[170px_84px_84px_58px_84px] gap-2 px-1 pb-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400 md:grid">
                     <div>Article</div>
                     <div>Stock</div>
                     <div>Qté</div>
+                    <div></div>
                     <div></div>
                 </div>
 
@@ -70,10 +73,14 @@
                         @php
                             $selectedProductId = (int) ($item['product_id'] ?? 0);
                             $availableForLine = (float) ($availableQuantities[$selectedProductId] ?? 0);
+                            $requestedQuantity = (float) ($item['quantity'] ?? 0);
+                            $hasSelectedProduct = $selectedProductId !== 0;
+                            $isOverStock = $hasSelectedProduct && $requestedQuantity > 0 && $requestedQuantity > $availableForLine;
+                            $remainingAfterTransfer = $hasSelectedProduct ? max(0, $availableForLine - $requestedQuantity) : 0;
                         @endphp
 
-                        <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-2" wire:key="transfer-item-{{ $index }}">
-                            <div class="grid grid-cols-1 gap-2 md:grid-cols-[170px_84px_84px_84px] md:items-center">
+                        <div class="rounded-xl border {{ $isOverStock ? 'border-red-200 bg-red-50/70' : 'border-slate-200 bg-slate-50/70' }} p-2" wire:key="transfer-item-{{ $index }}">
+                            <div class="grid grid-cols-1 gap-2 md:grid-cols-[170px_84px_84px_58px_84px] md:items-center">
                                 <select wire:model.live="items.{{ $index }}.product_id" class="input h-9 bg-white text-sm" @disabled(blank($from_location_id))>
                                     <option value="">-- Article --</option>
                                     @foreach ($availableProducts as $product)
@@ -81,14 +88,32 @@
                                     @endforeach
                                 </select>
 
-                                <div class="flex h-9 items-center rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-600">
+                                <div class="flex h-9 items-center justify-center rounded-lg border {{ $isOverStock ? 'border-red-200 bg-red-50' : 'border-cyan-200 bg-cyan-50' }} px-2 text-sm font-semibold {{ $isOverStock ? 'text-red-700' : 'text-cyan-900' }}">
                                     {{ number_format($availableForLine, 3) }}
                                 </div>
 
                                 <input wire:model.defer="items.{{ $index }}.quantity" type="number" step="0.001" class="input h-9 bg-white px-2 text-sm" placeholder="Qté">
 
+                                <button type="button" wire:click="fillMaxQuantity({{ $index }})" class="btn btn-secondary h-9 px-2 text-xs" @disabled(!$hasSelectedProduct)>
+                                    Max
+                                </button>
+
                                 <button type="button" wire:click="removeItem({{ $index }})" class="btn btn-secondary h-9 px-2 text-xs">Retirer</button>
                             </div>
+
+                            @if ($hasSelectedProduct)
+                                <div class="mt-2 text-[11px] text-slate-500">
+                                    @if ($requestedQuantity > 0)
+                                        @if ($isOverStock)
+                                            Stock insuffisant : il manque {{ number_format($requestedQuantity - $availableForLine, 3) }}.
+                                        @else
+                                            Stock restant après transfert : <span class="font-semibold text-slate-700">{{ number_format($remainingAfterTransfer, 3) }}</span>
+                                        @endif
+                                    @else
+                                        Stock disponible : <span class="font-semibold text-slate-700">{{ number_format($availableForLine, 3) }}</span>
+                                    @endif
+                                </div>
+                            @endif
                         </div>
                     @endforeach
                 </div>
@@ -99,6 +124,21 @@
                     </div>
                 @endif
             </div>
+        </div>
+
+        @php
+            $selectedLines = collect($items)->filter(fn ($item) => !empty($item['product_id']) && !empty($item['quantity']));
+            $totalUnits = $selectedLines->sum(fn ($item) => (float) $item['quantity']);
+        @endphp
+
+        <div class="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-600 shadow-sm">
+            <span class="font-semibold text-slate-900">{{ $selectedLines->count() }}</span> ligne(s) prête(s)
+            <span class="mx-2 text-slate-300">•</span>
+            <span class="font-semibold text-slate-900">{{ number_format($totalUnits, 3) }}</span> unité(s) à transférer
+            @if ($fromLocation && $toLocation)
+                <span class="mx-2 text-slate-300">•</span>
+                <span>{{ $fromLocation->name }} → {{ $toLocation->name }}</span>
+            @endif
         </div>
 
         <div class="flex items-center justify-end gap-2">

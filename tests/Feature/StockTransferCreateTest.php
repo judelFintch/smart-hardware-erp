@@ -78,4 +78,30 @@ class StockTransferCreateTest extends TestCase
             ->call('save')
             ->assertHasErrors('items');
     }
+
+    public function test_max_button_fills_available_quantity_for_selected_product(): void
+    {
+        $user = User::factory()->create(['role' => 'owner']);
+
+        $source = StockLocation::query()->create(['code' => 'SRC3', 'name' => 'Source 3']);
+        $product = Product::query()->create([
+            'sku' => 'SKU-TR-004',
+            'name' => 'Prise simple',
+            'is_active' => true,
+        ]);
+
+        StockBalance::query()->create([
+            'product_id' => $product->id,
+            'location_id' => $source->id,
+            'quantity' => 12.5,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Create::class)
+            ->set('from_location_id', $source->id)
+            ->set('items.0.product_id', $product->id)
+            ->call('fillMaxQuantity', 0)
+            ->assertSet('items.0.quantity', '12.500');
+    }
 }
