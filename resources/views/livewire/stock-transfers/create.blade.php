@@ -83,7 +83,7 @@
                             <div class="grid grid-cols-1 gap-2 md:grid-cols-[170px_84px_84px_58px_84px] md:items-center">
                                 <select wire:model.live="items.{{ $index }}.product_id" class="input h-9 bg-white text-sm" @disabled(blank($from_location_id))>
                                     <option value="">-- Article --</option>
-                                    @foreach ($availableProducts as $product)
+                                    @foreach (($availableProductsByIndex[$index] ?? collect()) as $product)
                                         <option value="{{ $product->id }}">{{ $product->name }}</option>
                                     @endforeach
                                 </select>
@@ -101,16 +101,12 @@
                                 <button type="button" wire:click="removeItem({{ $index }})" class="btn btn-secondary h-9 px-2 text-xs">Retirer</button>
                             </div>
 
-                            @if ($hasSelectedProduct)
+                            @if ($hasSelectedProduct && $requestedQuantity > 0)
                                 <div class="mt-2 text-[11px] text-slate-500">
-                                    @if ($requestedQuantity > 0)
-                                        @if ($isOverStock)
-                                            Stock insuffisant : il manque {{ number_format($requestedQuantity - $availableForLine, 3) }}.
-                                        @else
-                                            Stock restant après transfert : <span class="font-semibold text-slate-700">{{ number_format($remainingAfterTransfer, 3) }}</span>
-                                        @endif
+                                    @if ($isOverStock)
+                                        Stock insuffisant : il manque {{ number_format($requestedQuantity - $availableForLine, 3) }}.
                                     @else
-                                        Stock disponible : <span class="font-semibold text-slate-700">{{ number_format($availableForLine, 3) }}</span>
+                                        Stock restant après transfert : <span class="font-semibold text-slate-700">{{ number_format($remainingAfterTransfer, 3) }}</span>
                                     @endif
                                 </div>
                             @endif
