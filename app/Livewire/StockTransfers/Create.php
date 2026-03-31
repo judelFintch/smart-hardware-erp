@@ -5,6 +5,7 @@ namespace App\Livewire\StockTransfers;
 use App\Models\Product;
 use App\Models\StockBalance;
 use App\Models\StockLocation;
+use App\Models\StockTransfer;
 use App\Services\StockService;
 use App\Support\LocationAccess;
 use Illuminate\Support\Facades\DB;
@@ -12,9 +13,12 @@ use Livewire\Component;
 
 class Create extends Component
 {
+    public int $step = 1;
     public ?int $from_location_id = null;
     public ?int $to_location_id = null;
+    public ?int $completed_transfer_id = null;
     public array $items = [];
+    public array $confirmed_items = [];
 
     public function mount(): void
     {
@@ -29,6 +33,18 @@ class Create extends Component
     public function addItem(): void
     {
         $this->items[] = ['product_id' => null, 'quantity' => null];
+    }
+
+    public function submitCurrentStep(StockService $stockService): void
+    {
+        if ($this->step === 1) {
+            $this->goToConfirmation();
+            return;
+        }
+
+        if ($this->step === 2) {
+            $this->confirmTransfer($stockService);
+        }
     }
 
     public function updatedFromLocationId($value): void
@@ -112,70 +128,79 @@ class Create extends Component
             : null;
     }
 
-    public function save(StockService $stockService): void
+    public function goToConfirmation(): void
     {
-        $data = $this->validate([
-            'from_location_id' => ['required', 'exists:stock_locations,id'],
-            'to_location_id' => ['required', 'exists:stock_locations,id', 'different:from_location_id'],
-            'items.*.product_id' => ['nullable', 'distinct', 'exists:products,id'],
-            'items.*.quantity' => ['nullable', 'numeric', 'min:0.001'],
-        ]);
+        $payload = $this->validatedTransferPayload();
 
-        $filteredItems = array_values(array_filter($this->items, function ($item) {
-            return !empty($item['product_id']) && !empty($item['quantity']);
-        }));
-
-        if (count($filteredItems) === 0) {
-            $this->addError('items', 'Ajoute au moins un article.');
+        if (!$payload) {
             return;
         }
 
-        LocationAccess::ensureLocationAllowed((int) $data['from_location_id']);
-        $from = StockLocation::findOrFail($data['from_location_id']);
-        $to = StockLocation::findOrFail($data['to_location_id']);
+        $this->confirmed_items = array_map(fn (array $item) => [
+            'product_id' => $item['product']->id,
+            'product_name' => $item['product']->name,
+            'quantity' => $item['quantity'],
+            'available' => $item['available'],
+            'remaining' => $item['remaining'],
+            'unit_cost_local' => $item['unit_cost_local'],
+        ], $payload['items']);
+        $this->step = 2;
+    }
 
-        foreach ($filteredItems as $item) {
-            $product = Product::findOrFail($item['product_id']);
-            $quantity = (float) $item['quantity'];
+    public function backToEdit(): void
+    {
+        $this->step = 1;
+    }
 
-            $balance = StockBalance::where('product_id', $product->id)
-                ->where('location_id', $from->id)
-                ->first();
+    public function confirmTransfer(StockService $stockService): void
+    {
+        $payload = $this->validatedTransferPayload();
 
-            $available = (float) ($balance?->quantity ?? 0);
-            if ($available < $quantity) {
-                $this->addError('items', "Stock insuffisant pour {$product->name} (disponible: {$available}).");
-                return;
-            }
+        if (!$payload) {
+            return;
         }
 
-        DB::transaction(function () use ($filteredItems, $stockService, $from, $to) {
-            foreach ($filteredItems as $item) {
-                $product = Product::findOrFail($item['product_id']);
-                $quantity = (float) $item['quantity'];
+        $transfer = DB::transaction(function () use ($payload, $stockService) {
+            $transfer = StockTransfer::create([
+                'from_location_id' => $payload['from']->id,
+                'to_location_id' => $payload['to']->id,
+                'transferred_at' => now(),
+                'created_by' => auth()->id(),
+            ]);
 
-                $balance = StockBalance::where('product_id', $product->id)
-                    ->where('location_id', $from->id)
-                    ->first();
+            $transfer->update([
+                'reference' => 'TRF-' . now()->format('Ymd') . '-' . str_pad((string) $transfer->id, 4, '0', STR_PAD_LEFT),
+            ]);
 
-                $unitCost = $balance?->avg_cost_local ?? $product->avg_cost_local;
-
+            foreach ($payload['items'] as $item) {
                 $stockService->recordMovement([
-                    'product_id' => $product->id,
-                    'from_location_id' => $from->id,
-                    'to_location_id' => $to->id,
-                    'quantity' => $quantity,
-                    'unit_cost_local' => (float) $unitCost,
-                    'unit_sale_price_local' => (float) $product->sale_price_local,
+                    'product_id' => $item['product']->id,
+                    'from_location_id' => $payload['from']->id,
+                    'to_location_id' => $payload['to']->id,
+                    'quantity' => $item['quantity'],
+                    'unit_cost_local' => $item['unit_cost_local'],
+                    'unit_sale_price_local' => (float) $item['product']->sale_price_local,
                     'type' => 'transfer_in',
                     'reference_type' => 'stock_transfer',
-                    'reference_id' => null,
+                    'reference_id' => $transfer->id,
                     'occurred_at' => now(),
+                    'created_by' => auth()->id(),
                 ]);
             }
+
+            return $transfer->fresh();
         });
 
-        $this->redirectRoute('stock-movements.index');
+        $this->completed_transfer_id = $transfer->id;
+        $this->confirmed_items = array_map(fn (array $item) => [
+            'product_id' => $item['product']->id,
+            'product_name' => $item['product']->name,
+            'quantity' => $item['quantity'],
+            'available' => $item['available'],
+            'remaining' => $item['remaining'],
+            'unit_cost_local' => $item['unit_cost_local'],
+        ], $payload['items']);
+        $this->step = 3;
     }
 
     public function render()
@@ -230,6 +255,11 @@ class Create extends Component
         $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
         $fromLocation = $this->from_location_id ? $fromLocations->firstWhere('id', $this->from_location_id) : null;
         $toLocation = $this->to_location_id ? $toLocations->firstWhere('id', $this->to_location_id) : null;
+        $completedTransfer = $this->completed_transfer_id
+            ? StockTransfer::query()
+                ->with(['fromLocation', 'toLocation', 'createdBy', 'movements.product'])
+                ->find($this->completed_transfer_id)
+            : null;
 
         return view('livewire.stock-transfers.create', compact(
             'availableProducts',
@@ -239,8 +269,63 @@ class Create extends Component
             'toLocations',
             'canSelectAnyLocation',
             'fromLocation',
-            'toLocation'
+            'toLocation',
+            'completedTransfer'
         ))
             ->layout('layouts.app');
+    }
+
+    private function validatedTransferPayload(): ?array
+    {
+        $data = $this->validate([
+            'from_location_id' => ['required', 'exists:stock_locations,id'],
+            'to_location_id' => ['required', 'exists:stock_locations,id', 'different:from_location_id'],
+            'items.*.product_id' => ['nullable', 'distinct', 'exists:products,id'],
+            'items.*.quantity' => ['nullable', 'numeric', 'min:0.001'],
+        ]);
+
+        $filteredItems = array_values(array_filter($this->items, function ($item) {
+            return !empty($item['product_id']) && !empty($item['quantity']);
+        }));
+
+        if (count($filteredItems) === 0) {
+            $this->addError('items', 'Ajoute au moins un article.');
+            return null;
+        }
+
+        LocationAccess::ensureLocationAllowed((int) $data['from_location_id']);
+        $from = StockLocation::findOrFail($data['from_location_id']);
+        $to = StockLocation::findOrFail($data['to_location_id']);
+        $items = [];
+
+        foreach ($filteredItems as $item) {
+            $product = Product::findOrFail($item['product_id']);
+            $quantity = (float) $item['quantity'];
+
+            $balance = StockBalance::query()
+                ->where('product_id', $product->id)
+                ->where('location_id', $from->id)
+                ->first();
+
+            $available = (float) ($balance?->quantity ?? 0);
+            if ($available < $quantity) {
+                $this->addError('items', "Stock insuffisant pour {$product->name} (disponible: {$available}).");
+                return null;
+            }
+
+            $items[] = [
+                'product' => $product,
+                'quantity' => $quantity,
+                'available' => $available,
+                'remaining' => $available - $quantity,
+                'unit_cost_local' => (float) ($balance?->avg_cost_local ?? $product->avg_cost_local),
+            ];
+        }
+
+        return [
+            'from' => $from,
+            'to' => $to,
+            'items' => $items,
+        ];
     }
 }

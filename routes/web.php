@@ -18,6 +18,7 @@ use App\Livewire\Purchases\Show as PurchasesShow;
 use App\Models\CompanySetting;
 use App\Models\PurchaseOrder;
 use App\Models\Sale;
+use App\Models\StockTransfer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Livewire\Reports\Financial as ReportsFinancial;
 use App\Livewire\Sales\Create as SalesCreate;
@@ -93,6 +94,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('purchases/{purchaseOrder}/edit', PurchasesEdit::class)->name('purchases.edit');
 
     Route::get('stock-transfers/create', StockTransfersCreate::class)->name('stock-transfers.create');
+    Route::get('stock-transfers/{stockTransfer}/print', function (StockTransfer $stockTransfer) {
+        if (!LocationAccess::hasGlobalAccess()) {
+            LocationAccess::ensureLocationAllowed($stockTransfer->from_location_id, message: 'Acces non autorise a ce transfert.');
+        }
+
+        $company = CompanySetting::first();
+        $stockTransfer->load(['fromLocation', 'toLocation', 'createdBy', 'movements.product']);
+
+        return view('stock-transfers.print', compact('stockTransfer', 'company'));
+    })->name('stock-transfers.print');
     Route::get('stock-movements', StockMovementsIndex::class)->name('stock-movements.index');
     Route::get('stock-locations', StockLocationsIndex::class)->middleware('role:owner,manager')->name('stock-locations.index');
     Route::get('stock-locations/create', StockLocationsForm::class)->middleware('role:owner,manager')->name('stock-locations.create');

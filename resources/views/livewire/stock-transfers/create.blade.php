@@ -7,7 +7,17 @@
         <a class="btn btn-secondary" href="{{ route('stock-movements.index') }}" wire:navigate>Retour</a>
     </div>
 
-    <form wire:submit.prevent="save" class="space-y-3" data-autosave data-autosave-key="stock-transfer-create">
+    <div class="grid gap-2 md:grid-cols-3">
+        @foreach ([1 => 'Préparation', 2 => 'Récapitulatif', 3 => 'Validation'] as $number => $label)
+            <div class="rounded-2xl border px-4 py-3 {{ $step === $number ? 'border-cyan-300 bg-cyan-50 text-cyan-900' : 'border-slate-200 bg-white text-slate-500' }}">
+                <div class="text-xs font-semibold uppercase tracking-[0.14em]">Étape {{ $number }}</div>
+                <div class="mt-1 text-sm font-semibold">{{ $label }}</div>
+            </div>
+        @endforeach
+    </div>
+
+    <form wire:submit.prevent="submitCurrentStep" class="space-y-3" data-autosave data-autosave-key="stock-transfer-create">
+        @if ($step === 1)
         <div class="rounded-[24px] border border-slate-200 bg-white shadow-sm">
             <div class="border-b border-slate-100 px-4 py-3">
                 <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_44px_minmax(0,1fr)_auto] md:items-end">
@@ -121,6 +131,81 @@
                 @endif
             </div>
         </div>
+        @endif
+
+        @if ($step === 2)
+            @php
+                $totalUnits = collect($confirmed_items)->sum('quantity');
+            @endphp
+            <div class="rounded-[24px] border border-slate-200 bg-white shadow-sm">
+                <div class="border-b border-slate-100 px-4 py-3">
+                    <div class="text-lg font-semibold text-slate-900">Récapitulatif du transfert</div>
+                    <div class="mt-1 text-sm text-slate-500">Vérifie les lignes avant la validation finale.</div>
+                </div>
+                <div class="grid gap-3 border-b border-slate-100 px-4 py-3 md:grid-cols-3">
+                    <div class="rounded-xl bg-slate-50 px-3 py-3 text-sm">
+                        <div class="text-xs uppercase tracking-[0.12em] text-slate-400">Source</div>
+                        <div class="mt-1 font-semibold text-slate-900">{{ $fromLocation?->name }}</div>
+                    </div>
+                    <div class="rounded-xl bg-slate-50 px-3 py-3 text-sm">
+                        <div class="text-xs uppercase tracking-[0.12em] text-slate-400">Destination</div>
+                        <div class="mt-1 font-semibold text-slate-900">{{ $toLocation?->name }}</div>
+                    </div>
+                    <div class="rounded-xl bg-slate-50 px-3 py-3 text-sm">
+                        <div class="text-xs uppercase tracking-[0.12em] text-slate-400">Total unités</div>
+                        <div class="mt-1 font-semibold text-slate-900">{{ number_format((float) $totalUnits, 3) }}</div>
+                    </div>
+                </div>
+                <div class="p-4">
+                    <table class="min-w-full text-sm">
+                        <thead>
+                            <tr class="text-left text-xs uppercase tracking-[0.12em] text-slate-400">
+                                <th class="pb-2">Article</th>
+                                <th class="pb-2 text-right">Disponible</th>
+                                <th class="pb-2 text-right">À transférer</th>
+                                <th class="pb-2 text-right">Restant</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            @foreach ($confirmed_items as $item)
+                                <tr>
+                                    <td class="py-3 font-medium text-slate-900">{{ $item['product_name'] }}</td>
+                                    <td class="py-3 text-right text-slate-600">{{ number_format((float) $item['available'], 3) }}</td>
+                                    <td class="py-3 text-right font-semibold text-slate-900">{{ number_format((float) $item['quantity'], 3) }}</td>
+                                    <td class="py-3 text-right text-slate-600">{{ number_format((float) $item['remaining'], 3) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
+
+        @if ($step === 3 && $completedTransfer)
+            <div class="rounded-[24px] border border-emerald-200 bg-emerald-50 shadow-sm">
+                <div class="border-b border-emerald-100 px-4 py-3">
+                    <div class="text-lg font-semibold text-emerald-900">Transfert validé</div>
+                    <div class="mt-1 text-sm text-emerald-700">Le transfert est enregistré et le bon est prêt.</div>
+                </div>
+                <div class="grid gap-3 px-4 py-4 md:grid-cols-3">
+                    <div class="rounded-xl bg-white px-3 py-3 text-sm">
+                        <div class="text-xs uppercase tracking-[0.12em] text-slate-400">Référence</div>
+                        <div class="mt-1 font-semibold text-slate-900">{{ $completedTransfer->reference }}</div>
+                    </div>
+                    <div class="rounded-xl bg-white px-3 py-3 text-sm">
+                        <div class="text-xs uppercase tracking-[0.12em] text-slate-400">Trajet</div>
+                        <div class="mt-1 font-semibold text-slate-900">{{ $completedTransfer->fromLocation?->name }} → {{ $completedTransfer->toLocation?->name }}</div>
+                    </div>
+                    <div class="rounded-xl bg-white px-3 py-3 text-sm">
+                        <div class="text-xs uppercase tracking-[0.12em] text-slate-400">Créé par</div>
+                        <div class="mt-1 font-semibold text-slate-900">{{ $completedTransfer->createdBy?->name ?? 'Système' }}</div>
+                    </div>
+                </div>
+                <div class="px-4 pb-4">
+                    <a class="btn btn-primary" href="{{ route('stock-transfers.print', $completedTransfer) }}" target="_blank">Imprimer le bon de transfert</a>
+                </div>
+            </div>
+        @endif
 
         @php
             $selectedLines = collect($items)->filter(fn ($item) => !empty($item['product_id']) && !empty($item['quantity']));
@@ -138,8 +223,16 @@
         </div>
 
         <div class="flex items-center justify-end gap-2">
-            <a class="btn btn-secondary" href="{{ route('stock-movements.index') }}" wire:navigate>Annuler</a>
-            <button class="btn btn-primary" type="submit">Transférer</button>
+            @if ($step === 1)
+                <a class="btn btn-secondary" href="{{ route('stock-movements.index') }}" wire:navigate>Annuler</a>
+                <button class="btn btn-primary" type="button" wire:click="goToConfirmation">Continuer</button>
+            @elseif ($step === 2)
+                <button class="btn btn-secondary" type="button" wire:click="backToEdit">Retour</button>
+                <button class="btn btn-primary" type="button" wire:click="confirmTransfer">Valider le transfert</button>
+            @else
+                <a class="btn btn-secondary" href="{{ route('stock-transfers.create') }}" wire:navigate>Nouveau transfert</a>
+                <a class="btn btn-primary" href="{{ route('stock-movements.index') }}" wire:navigate>Voir les mouvements</a>
+            @endif
         </div>
     </form>
 </div>

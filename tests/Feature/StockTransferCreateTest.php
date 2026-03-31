@@ -6,6 +6,7 @@ use App\Livewire\StockTransfers\Create;
 use App\Models\Product;
 use App\Models\StockBalance;
 use App\Models\StockLocation;
+use App\Models\StockTransfer;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -75,7 +76,7 @@ class StockTransferCreateTest extends TestCase
             ->set('items', [
                 ['product_id' => $product->id, 'quantity' => 1],
             ])
-            ->call('save')
+            ->call('goToConfirmation')
             ->assertHasErrors('items');
     }
 
@@ -130,5 +131,60 @@ class StockTransferCreateTest extends TestCase
             ->set('items.1.product_id', $product->id)
             ->assertSet('items.1.product_id', null)
             ->assertHasErrors('items');
+    }
+
+    public function test_transfer_goes_through_confirmation_before_persistence_and_creates_receipt(): void
+    {
+        $user = User::factory()->create(['role' => 'owner']);
+
+        $source = StockLocation::query()->create(['code' => 'SRC5', 'name' => 'Source 5']);
+        $destination = StockLocation::query()->create(['code' => 'DST5', 'name' => 'Destination 5']);
+        $product = Product::query()->create([
+            'sku' => 'SKU-TR-006',
+            'name' => 'Cable UTP',
+            'is_active' => true,
+        ]);
+
+        StockBalance::query()->create([
+            'product_id' => $product->id,
+            'location_id' => $source->id,
+            'quantity' => 10,
+            'avg_cost_local' => 5,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Create::class)
+            ->set('from_location_id', $source->id)
+            ->set('to_location_id', $destination->id)
+            ->set('items', [
+                ['product_id' => $product->id, 'quantity' => 4],
+            ])
+            ->call('goToConfirmation')
+            ->assertSet('step', 2);
+
+        $this->assertDatabaseCount('stock_transfers', 0);
+
+        Livewire::test(Create::class)
+            ->set('from_location_id', $source->id)
+            ->set('to_location_id', $destination->id)
+            ->set('items', [
+                ['product_id' => $product->id, 'quantity' => 4],
+            ])
+            ->call('goToConfirmation')
+            ->call('confirmTransfer')
+            ->assertSet('step', 3);
+
+        $transfer = StockTransfer::query()->first();
+
+        $this->assertNotNull($transfer);
+        $this->assertDatabaseHas('stock_movements', [
+            'reference_type' => 'stock_transfer',
+            'reference_id' => $transfer->id,
+        ]);
+
+        $this->get(route('stock-transfers.print', $transfer))
+            ->assertOk()
+            ->assertSee($transfer->reference);
     }
 }
