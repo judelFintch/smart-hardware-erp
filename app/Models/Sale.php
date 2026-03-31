@@ -42,4 +42,9 @@ class Sale extends Model
     {
         return $this->hasMany(SalePayment::class);
     }
+
+    public function adjustments(): HasMany
+    {
+        return $this->hasMany(SaleAdjustment::class)->latest('processed_at')->latest('id');
+    }
 }
