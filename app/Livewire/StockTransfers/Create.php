@@ -58,6 +58,36 @@ class Create extends Component
         }
     }
 
+    public function updatedItems($value, ?string $name = null): void
+    {
+        if (!$name || !str_ends_with($name, '.product_id')) {
+            return;
+        }
+
+        $index = (int) explode('.', $name)[0];
+        $productId = (int) $value;
+
+        if ($productId === 0) {
+            return;
+        }
+
+        foreach ($this->items as $itemIndex => $item) {
+            if ($itemIndex === $index) {
+                continue;
+            }
+
+            if ((int) ($item['product_id'] ?? 0) === $productId) {
+                $this->items[$index]['product_id'] = null;
+                $this->items[$index]['quantity'] = null;
+                $this->addError('items', 'Cet article est deja selectionne sur une autre ligne.');
+
+                return;
+            }
+        }
+
+        $this->resetErrorBag('items');
+    }
+
     public function removeItem(int $index): void
     {
         unset($this->items[$index]);
@@ -172,6 +202,26 @@ class Create extends Component
                 ->all();
         }
 
+        $availableProductsByIndex = [];
+
+        foreach ($this->items as $index => $item) {
+            $selectedInOtherLines = collect($this->items)
+                ->except($index)
+                ->pluck('product_id')
+                ->filter()
+                ->map(fn ($productId) => (int) $productId)
+                ->all();
+
+            $currentProductId = (int) ($item['product_id'] ?? 0);
+
+            $availableProductsByIndex[$index] = $availableProducts
+                ->filter(function ($product) use ($selectedInOtherLines, $currentProductId) {
+                    return $product->id === $currentProductId
+                        || !in_array((int) $product->id, $selectedInOtherLines, true);
+                })
+                ->values();
+        }
+
         $fromLocations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
         $toLocations = StockLocation::query()
             ->when($this->from_location_id, fn ($query, $locationId) => $query->whereKeyNot($locationId))
@@ -183,6 +233,7 @@ class Create extends Component
 
         return view('livewire.stock-transfers.create', compact(
             'availableProducts',
+            'availableProductsByIndex',
             'availableQuantities',
             'fromLocations',
             'toLocations',

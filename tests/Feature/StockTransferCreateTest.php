@@ -104,4 +104,31 @@ class StockTransferCreateTest extends TestCase
             ->call('fillMaxQuantity', 0)
             ->assertSet('items.0.quantity', '12.500');
     }
+
+    public function test_same_product_can_not_be_selected_twice(): void
+    {
+        $user = User::factory()->create(['role' => 'owner']);
+
+        $source = StockLocation::query()->create(['code' => 'SRC4', 'name' => 'Source 4']);
+        $product = Product::query()->create([
+            'sku' => 'SKU-TR-005',
+            'name' => 'Boite de derivation',
+            'is_active' => true,
+        ]);
+
+        StockBalance::query()->create([
+            'product_id' => $product->id,
+            'location_id' => $source->id,
+            'quantity' => 8,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Create::class)
+            ->set('from_location_id', $source->id)
+            ->set('items.0.product_id', $product->id)
+            ->set('items.1.product_id', $product->id)
+            ->assertSet('items.1.product_id', null)
+            ->assertHasErrors('items');
+    }
 }
