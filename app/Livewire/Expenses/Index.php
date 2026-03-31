@@ -2,17 +2,18 @@
 
 namespace App\Livewire\Expenses;
 
+use App\Livewire\Concerns\ConfirmsDeletionWithSecretCode;
 use App\Models\Expense;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
+    use ConfirmsDeletionWithSecretCode, WithPagination;
 
     public int $perPage = 15;
 
-    public function delete(int $expenseId): void
+    protected function performDelete(int $expenseId): void
     {
         Expense::whereKey($expenseId)->delete();
     }

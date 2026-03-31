@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Users;
 
+use App\Livewire\Concerns\ConfirmsDeletionWithSecretCode;
 use App\Models\User;
 use App\Support\LocationAccess;
 use Livewire\Component;
@@ -9,11 +10,11 @@ use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
+    use ConfirmsDeletionWithSecretCode, WithPagination;
 
     public int $perPage = 15;
 
-    public function delete(int $userId): void
+    protected function performDelete(int $userId): void
     {
         if (auth()->id() === $userId) {
             $this->addError('delete', 'Impossible de supprimer votre propre compte.');

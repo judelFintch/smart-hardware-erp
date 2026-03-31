@@ -50,6 +50,18 @@
             </div>
         </div>
 
+        <div class="form-grid">
+            <div>
+                <label class="block text-sm font-medium">Code secret</label>
+                <input wire:model.defer="secret_code" type="password" class="input" @if(!$user) required @endif>
+                @error('secret_code') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Confirmer le code secret</label>
+                <input wire:model.defer="secret_code_confirmation" type="password" class="input" @if(!$user) required @endif>
+            </div>
+        </div>
+
         <div class="flex items-center justify-end gap-2">
             <a class="btn btn-secondary" href="{{ route('users.index') }}" wire:navigate>Annuler</a>
             <button class="btn btn-primary" type="submit">Enregistrer</button>

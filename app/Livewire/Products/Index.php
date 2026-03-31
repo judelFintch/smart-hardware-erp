@@ -3,6 +3,7 @@
 namespace App\Livewire\Products;
 
 use App\Exports\ProductImportTemplateExport;
+use App\Livewire\Concerns\ConfirmsDeletionWithSecretCode;
 use App\Models\Product;
 use App\Models\StockBalance;
 use App\Models\StockLocation;
@@ -17,8 +18,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Index extends Component
 {
-    use WithFileUploads;
-    use WithPagination;
+    use ConfirmsDeletionWithSecretCode, WithFileUploads, WithPagination;
 
     public $importFile;
     public string $search = '';
@@ -44,7 +44,7 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function delete(int $productId): void
+    protected function performDelete(int $productId): void
     {
         Product::whereKey($productId)->delete();
     }

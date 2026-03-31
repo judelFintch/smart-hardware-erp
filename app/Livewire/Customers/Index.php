@@ -2,17 +2,18 @@
 
 namespace App\Livewire\Customers;
 
+use App\Livewire\Concerns\ConfirmsDeletionWithSecretCode;
 use App\Models\Customer;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
+    use ConfirmsDeletionWithSecretCode, WithPagination;
 
     public int $perPage = 15;
 
-    public function delete(int $customerId): void
+    protected function performDelete(int $customerId): void
     {
         Customer::whereKey($customerId)->delete();
     }

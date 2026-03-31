@@ -18,6 +18,8 @@ class Form extends Component
     public ?int $stock_location_id = null;
     public string $password = '';
     public string $password_confirmation = '';
+    public string $secret_code = '';
+    public string $secret_code_confirmation = '';
 
     public function mount(?User $user = null): void
     {
@@ -55,8 +57,12 @@ class Form extends Component
             if ($this->password !== '') {
                 $rules['password'] = ['confirmed', 'min:12'];
             }
+            if ($this->secret_code !== '') {
+                $rules['secret_code'] = ['confirmed', 'min:4', 'max:20'];
+            }
         } else {
             $rules['password'] = ['required', 'confirmed', 'min:12'];
+            $rules['secret_code'] = ['required', 'confirmed', 'min:4', 'max:20'];
         }
 
         $data = $this->validate($rules);
@@ -74,7 +80,8 @@ class Form extends Component
                 'email' => $data['email'],
                 'role' => $data['role'],
                 'stock_location_id' => $data['stock_location_id'],
-                'password' => $data['password'] ? Hash::make($data['password']) : $this->user->password,
+                'password' => !empty($data['password']) ? Hash::make($data['password']) : $this->user->password,
+                'secret_code' => !empty($data['secret_code']) ? Hash::make($data['secret_code']) : $this->user->secret_code,
             ]);
         } else {
             User::create([
@@ -83,6 +90,7 @@ class Form extends Component
                 'role' => $data['role'],
                 'stock_location_id' => $data['stock_location_id'],
                 'password' => Hash::make($data['password']),
+                'secret_code' => Hash::make($data['secret_code']),
                 'email_verified_at' => now(),
             ]);
         }

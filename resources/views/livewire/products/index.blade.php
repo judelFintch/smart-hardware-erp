@@ -128,7 +128,7 @@
                                     <div class="flex flex-wrap justify-end gap-2">
                                         <a href="{{ route('products.stock-card', $product) }}" class="btn btn-secondary" wire:navigate>Fiche stock</a>
                                         <a href="{{ route('products.edit', $product) }}" class="btn btn-secondary" wire:navigate>Modifier</a>
-                                        <button wire:click="delete({{ $product->id }})" class="btn btn-secondary text-red-600" type="button" data-confirm="Confirmer la suppression de cet article ? Le stock restera conservé et l’article pourra être restauré depuis la corbeille.">Supprimer</button>
+                                        <button wire:click='openDeleteModal({{ $product->id }}, @json($product->name))' class="btn btn-secondary text-red-600" type="button">Supprimer</button>
                                     </div>
                                 </td>
                             </tr>
@@ -141,4 +141,6 @@
     <div>
         {{ $products->links() }}
     </div>
+
+    @include('livewire.partials.delete-secret-modal')
 </div>

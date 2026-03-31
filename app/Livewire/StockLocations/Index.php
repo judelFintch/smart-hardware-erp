@@ -2,17 +2,18 @@
 
 namespace App\Livewire\StockLocations;
 
+use App\Livewire\Concerns\ConfirmsDeletionWithSecretCode;
 use App\Models\StockLocation;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
+    use ConfirmsDeletionWithSecretCode, WithPagination;
 
     public int $perPage = 15;
 
-    public function delete(int $locationId): void
+    protected function performDelete(int $locationId): void
     {
         StockLocation::whereKey($locationId)->delete();
     }

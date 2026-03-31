@@ -2,17 +2,18 @@
 
 namespace App\Livewire\Units;
 
+use App\Livewire\Concerns\ConfirmsDeletionWithSecretCode;
 use App\Models\Unit;
 use Livewire\Component;
 use Livewire\WithPagination;
 
 class Index extends Component
 {
-    use WithPagination;
+    use ConfirmsDeletionWithSecretCode, WithPagination;
 
     public int $perPage = 15;
 
-    public function delete(int $unitId): void
+    protected function performDelete(int $unitId): void
     {
         Unit::whereKey($unitId)->delete();
     }

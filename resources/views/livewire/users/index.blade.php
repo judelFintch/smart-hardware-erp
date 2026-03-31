@@ -69,7 +69,7 @@
                                 <td class="px-4 py-4">
                                     <div class="flex flex-wrap justify-end gap-2">
                                         <a href="{{ route('users.edit', $user) }}" class="btn btn-secondary" wire:navigate>Modifier</a>
-                                        <button wire:click="delete({{ $user->id }})" class="btn btn-secondary text-red-600" type="button" data-confirm="Confirmer la suppression de cet utilisateur ? Il restera restaurable depuis la corbeille.">Supprimer</button>
+                                        <button wire:click='openDeleteModal({{ $user->id }}, @json($user->name))' class="btn btn-secondary text-red-600" type="button">Supprimer</button>
                                     </div>
                                 </td>
                             </tr>
@@ -82,4 +82,6 @@
     <div>
         {{ $users->links() }}
     </div>
+
+    @include('livewire.partials.delete-secret-modal')
 </div>

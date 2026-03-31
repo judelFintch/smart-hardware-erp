@@ -65,7 +65,7 @@
                                 <td class="px-4 py-4">
                                     <div class="flex flex-wrap justify-end gap-2">
                                         <a href="{{ route('suppliers.edit', $supplier) }}" class="btn btn-secondary" wire:navigate>Modifier</a>
-                                        <button wire:click="delete({{ $supplier->id }})" class="btn btn-secondary text-red-600" type="button" data-confirm="Confirmer la suppression de ce fournisseur ? Il restera restaurable depuis la corbeille.">Supprimer</button>
+                                        <button wire:click='openDeleteModal({{ $supplier->id }}, @json($supplier->name))' class="btn btn-secondary text-red-600" type="button">Supprimer</button>
                                     </div>
                                 </td>
                             </tr>
@@ -78,4 +78,6 @@
     <div>
         {{ $suppliers->links() }}
     </div>
+
+    @include('livewire.partials.delete-secret-modal')
 </div>

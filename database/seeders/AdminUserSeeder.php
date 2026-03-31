@@ -11,12 +11,14 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         $defaultPassword = 'Admin@12345';
+        $defaultSecretCode = '123456';
 
         User::updateOrCreate(
             ['email' => 'admin@local.test'],
             [
                 'name' => 'Admin',
                 'password' => Hash::make($defaultPassword),
+                'secret_code' => Hash::make($defaultSecretCode),
                 'role' => 'owner',
                 'email_verified_at' => now(),
             ]
@@ -27,6 +29,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Manager',
                 'password' => Hash::make($defaultPassword),
+                'secret_code' => Hash::make($defaultSecretCode),
                 'role' => 'manager',
                 'email_verified_at' => now(),
             ]
@@ -37,6 +40,7 @@ class AdminUserSeeder extends Seeder
             [
                 'name' => 'Seller',
                 'password' => Hash::make($defaultPassword),
+                'secret_code' => Hash::make($defaultSecretCode),
                 'role' => 'seller',
                 'email_verified_at' => now(),
             ]
