@@ -60,7 +60,7 @@
             <div class="space-y-2 p-3">
                 @error('items') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
 
-                <div class="hidden grid-cols-[minmax(0,1.8fr)_140px_120px_110px] gap-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400 md:grid">
+                <div class="hidden grid-cols-[minmax(0,1.6fr)_110px_90px_96px] gap-2 px-1 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-400 md:grid">
                     <div>Article</div>
                     <div>Disponible</div>
                     <div>Quantité</div>
@@ -73,7 +73,7 @@
                         $availableForLine = (float) ($availableQuantities[$selectedProductId] ?? 0);
                     @endphp
 
-                    <div class="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1.8fr)_140px_120px_110px] md:items-center" wire:key="transfer-item-{{ $index }}">
+                    <div class="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1.6fr)_110px_90px_96px] md:items-center" wire:key="transfer-item-{{ $index }}">
                         <select wire:model.live="items.{{ $index }}.product_id" class="input" @disabled(blank($from_location_id))>
                             <option value="">-- Article --</option>
                             @foreach ($availableProducts as $product)
@@ -81,13 +81,13 @@
                             @endforeach
                         </select>
 
-                        <div class="input flex items-center bg-slate-50 text-sm text-slate-600">
+                        <div class="input flex items-center bg-slate-50 px-2 text-sm text-slate-600">
                             {{ number_format($availableForLine, 3) }}
                         </div>
 
-                        <input wire:model.defer="items.{{ $index }}.quantity" type="number" step="0.001" class="input" placeholder="Qté">
+                        <input wire:model.defer="items.{{ $index }}.quantity" type="number" step="0.001" class="input px-2" placeholder="Qté">
 
-                        <button type="button" wire:click="removeItem({{ $index }})" class="btn btn-secondary">Supprimer</button>
+                        <button type="button" wire:click="removeItem({{ $index }})" class="btn btn-secondary px-2 text-xs">Suppr.</button>
                     </div>
                 @endforeach
 
