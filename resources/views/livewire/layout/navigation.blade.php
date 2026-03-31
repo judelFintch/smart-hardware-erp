@@ -86,6 +86,9 @@ new class extends Component
                         Journal d'activité
                     </a>
                     <div class="sidebar-title">Système</div>
+                    <a class="nav-link {{ request()->routeIs('trash.*') ? 'active' : '' }}" href="{{ route('trash.index') }}" wire:navigate>
+                        Corbeille
+                    </a>
                     <a class="nav-link {{ request()->routeIs('system.health') ? 'active' : '' }}" href="{{ route('system.health') }}" wire:navigate>
                         Santé système
                     </a>
@@ -154,6 +157,7 @@ new class extends Component
                     <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.financial') }}" wire:navigate>Rapports</a>
                     <a class="nav-link {{ request()->routeIs('reports.activity') ? 'active' : '' }}" href="{{ route('reports.activity') }}" wire:navigate>Journal d'activité</a>
                     <div class="sidebar-title">Système</div>
+                    <a class="nav-link {{ request()->routeIs('trash.*') ? 'active' : '' }}" href="{{ route('trash.index') }}" wire:navigate>Corbeille</a>
                     <a class="nav-link {{ request()->routeIs('system.health') ? 'active' : '' }}" href="{{ route('system.health') }}" wire:navigate>Santé système</a>
                 @endif
                 <div class="sidebar-title">Compte</div>

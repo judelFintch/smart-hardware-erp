@@ -63,7 +63,7 @@
                                 <td class="px-4 py-4">
                                     <div class="flex flex-wrap justify-end gap-2">
                                         <a href="{{ route('units.edit', $unit) }}" class="btn btn-secondary" wire:navigate>Modifier</a>
-                                        <button wire:click="delete({{ $unit->id }})" class="btn btn-secondary text-red-600" type="button">Supprimer</button>
+                                        <button wire:click="delete({{ $unit->id }})" class="btn btn-secondary text-red-600" type="button" data-confirm="Confirmer la suppression de cette unité ? Il restera restaurable depuis la corbeille.">Supprimer</button>
                                     </div>
                                 </td>
                             </tr>

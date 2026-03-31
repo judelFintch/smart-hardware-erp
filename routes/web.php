@@ -30,6 +30,7 @@ use App\Livewire\StockTransfers\Create as StockTransfersCreate;
 use App\Livewire\Suppliers\Form as SuppliersForm;
 use App\Livewire\Suppliers\Index as SuppliersIndex;
 use App\Livewire\System\Health as SystemHealth;
+use App\Livewire\Trash\Index as TrashIndex;
 use App\Livewire\Units\Form as UnitsForm;
 use App\Livewire\Units\Index as UnitsIndex;
 use App\Livewire\Users\Form as UsersForm;
@@ -125,6 +126,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('reports/financial', ReportsFinancial::class)->middleware('role:owner,manager')->name('reports.financial');
     Route::get('reports/activity', ActivityLogsIndex::class)->middleware('role:owner,manager')->name('reports.activity');
+    Route::get('trash', TrashIndex::class)->middleware('role:owner,manager')->name('trash.index');
     Route::get('system/health', SystemHealth::class)->middleware('role:owner,manager')->name('system.health');
 
     Route::view('profile', 'profile')->name('profile');

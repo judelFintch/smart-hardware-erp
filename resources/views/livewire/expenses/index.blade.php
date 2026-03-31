@@ -65,7 +65,7 @@
                                 <td class="px-4 py-4">
                                     <div class="flex flex-wrap justify-end gap-2">
                                         <a href="{{ route('expenses.edit', $expense) }}" class="btn btn-secondary" wire:navigate>Modifier</a>
-                                        <button wire:click="delete({{ $expense->id }})" class="btn btn-secondary text-red-600" type="button">Supprimer</button>
+                                        <button wire:click="delete({{ $expense->id }})" class="btn btn-secondary text-red-600" type="button" data-confirm="Confirmer la suppression de cette dépense ? Elle restera restaurable depuis la corbeille.">Supprimer</button>
                                     </div>
                                 </td>
                             </tr>
