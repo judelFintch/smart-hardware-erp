@@ -54,7 +54,12 @@
                             <tr class="hover:bg-slate-50/70">
                                 <td class="px-4 py-4 font-semibold uppercase text-slate-900">{{ $location->code }}</td>
                                 <td class="px-4 py-4">
-                                    <div class="font-medium text-slate-900">{{ $location->name }}</div>
+                                    <div class="flex items-center gap-2">
+                                        <div class="font-medium text-slate-900">{{ $location->name }}</div>
+                                        @if ($location->is_default_sale)
+                                            <span class="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-emerald-700">Vente par défaut</span>
+                                        @endif
+                                    </div>
                                     <div class="mt-1 text-xs text-slate-500">Lieu utilisable dans les mouvements et affectations stock.</div>
                                 </td>
                                 <td class="px-4 py-4 text-sm text-slate-600">{{ $location->notes ?: 'Aucune note' }}</td>

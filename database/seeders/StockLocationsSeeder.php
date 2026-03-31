@@ -16,12 +16,16 @@ class StockLocationsSeeder extends Seeder
 
         StockLocation::firstOrCreate(
             ['code' => 'magasin'],
-            ['name' => 'Magasin']
+            ['name' => 'Magasin', 'is_default_sale' => true]
         );
 
         StockLocation::firstOrCreate(
             ['code' => 'commande'],
             ['name' => 'Commande']
         );
+
+        if (!StockLocation::query()->where('is_default_sale', true)->exists()) {
+            StockLocation::query()->where('code', 'magasin')->update(['is_default_sale' => true]);
+        }
     }
 }

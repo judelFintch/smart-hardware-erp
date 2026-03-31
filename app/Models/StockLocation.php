@@ -15,6 +15,7 @@ class StockLocation extends Model
         'code',
         'name',
         'notes',
+        'is_default_sale',
     ];
 
     public function stockBalances(): HasMany

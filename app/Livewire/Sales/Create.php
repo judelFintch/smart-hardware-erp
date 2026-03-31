@@ -26,6 +26,7 @@ class Create extends Component
     public function mount(): void
     {
         $this->location_id = LocationAccess::assignedLocationId()
+            ?? StockLocation::where('is_default_sale', true)->first()?->id
             ?? StockLocation::where('code', 'magasin')->first()?->id;
 
         $this->items = [
