@@ -14,6 +14,7 @@ class Financial extends Component
 {
     public ?string $start = null;
     public ?string $end = null;
+    public string $profitCalculationMode = 'applied_sale_price';
 
     public function applyFilter(): void
     {
@@ -46,11 +47,19 @@ class Financial extends Component
         }
 
         $salesTotal = (float) $salesQuery->sum('total_amount');
+        $discountsTotal = (float) $salesQuery->sum('discount_total');
         $cogsTotal = (float) $saleItemsQuery
             ->selectRaw('SUM(unit_cost_local * quantity) as total')
             ->value('total');
+        $appliedSalePriceTotal = (float) $saleItemsQuery
+            ->selectRaw('SUM(unit_price * quantity) as total')
+            ->value('total');
         $expensesTotal = (float) $expensesQuery->sum('amount');
-        $profit = $salesTotal - $cogsTotal - $expensesTotal;
+        $profitRevenue = match ($this->profitCalculationMode) {
+            'net_sales' => $salesTotal,
+            default => $appliedSalePriceTotal,
+        };
+        $profit = $profitRevenue - $cogsTotal - $expensesTotal;
 
         $creditOutstanding = (float) LocationAccess::filterSales(Sale::query()->where('type', 'credit'))
             ->where('status', 'open')
@@ -71,7 +80,10 @@ class Financial extends Component
 
         return view('livewire.reports.financial', compact(
             'salesTotal',
+            'discountsTotal',
             'cogsTotal',
+            'appliedSalePriceTotal',
+            'profitRevenue',
             'expensesTotal',
             'profit',
             'creditOutstanding',

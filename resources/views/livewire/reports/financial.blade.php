@@ -10,7 +10,7 @@
     </div>
 
     <form wire:submit.prevent="applyFilter" class="rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm">
-        <div class="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+        <div class="grid gap-4 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Début</label>
                 <input wire:model.defer="start" type="date" class="input mt-2">
@@ -19,8 +19,20 @@
                 <label class="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Fin</label>
                 <input wire:model.defer="end" type="date" class="input mt-2">
             </div>
+            <div>
+                <label class="block text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Calcul bénéfice</label>
+                <select wire:model.live="profitCalculationMode" class="input mt-2">
+                    <option value="applied_sale_price">PU de vente appliqué</option>
+                    <option value="net_sales">Montant net des ventes</option>
+                </select>
+            </div>
             <button class="btn btn-primary" type="submit">Filtrer</button>
         </div>
+        <p class="mt-3 text-sm text-slate-500">
+            Le mode <span class="font-medium text-slate-700">PU de vente appliqué</span> calcule le bénéfice sur les
+            prix unitaires réellement utilisés dans les lignes de vente. Le mode <span class="font-medium text-slate-700">Montant net des ventes</span>
+            reprend le total des ventes après remises.
+        </p>
     </form>
 
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
@@ -42,12 +54,37 @@
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Bénéfice</div>
             <div class="mt-3 text-3xl font-semibold {{ $profit >= 0 ? 'text-emerald-700' : 'text-red-600' }}">{{ number_format($profit, 2) }}</div>
-            <div class="mt-2 text-sm text-slate-500">Résultat estimé après coût vendu et dépenses.</div>
+            <div class="mt-2 text-sm text-slate-500">
+                Résultat estimé après coût vendu et dépenses,
+                @if ($profitCalculationMode === 'applied_sale_price')
+                    basé sur le prix unitaire appliqué en vente.
+                @else
+                    basé sur le montant net total des ventes.
+                @endif
+            </div>
         </div>
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Crédit restant</div>
             <div class="mt-3 text-3xl font-semibold text-slate-900">{{ number_format($creditOutstanding, 2) }}</div>
             <div class="mt-2 text-sm text-slate-500">Montant encore dû sur les ventes à crédit.</div>
+        </div>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-3">
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">CA sur PU appliqué</div>
+            <div class="mt-3 text-2xl font-semibold text-slate-900">{{ number_format($appliedSalePriceTotal, 2) }}</div>
+            <div class="mt-2 text-sm text-slate-500">Somme des `unit_price x quantité` sur les lignes vendues.</div>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Remises ventes</div>
+            <div class="mt-3 text-2xl font-semibold text-slate-900">{{ number_format($discountsTotal, 2) }}</div>
+            <div class="mt-2 text-sm text-slate-500">Remises globales enregistrées sur les ventes de la période.</div>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Base bénéfice</div>
+            <div class="mt-3 text-2xl font-semibold text-slate-900">{{ number_format($profitRevenue, 2) }}</div>
+            <div class="mt-2 text-sm text-slate-500">Montant retenu par le mode de calcul sélectionné avant coût vendu et dépenses.</div>
         </div>
     </div>
 
