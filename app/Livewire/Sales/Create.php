@@ -76,6 +76,31 @@ class Create extends Component
         $this->resetErrorBag('items');
     }
 
+    public function updatedLocationId($value): void
+    {
+        $locationId = $value ? (int) $value : null;
+
+        $availableProductIds = $locationId
+            ? StockBalance::query()
+                ->where('location_id', $locationId)
+                ->where('quantity', '>', 0)
+                ->pluck('product_id')
+                ->map(fn ($productId) => (int) $productId)
+                ->all()
+            : [];
+
+        foreach ($this->items as $index => $item) {
+            $selectedProductId = (int) ($item['product_id'] ?? 0);
+
+            if ($selectedProductId !== 0 && !in_array($selectedProductId, $availableProductIds, true)) {
+                $this->items[$index]['product_id'] = null;
+                $this->items[$index]['quantity'] = null;
+            }
+        }
+
+        $this->resetErrorBag(['items', 'product_search']);
+    }
+
     public function addProduct(int $productId): void
     {
         if (!$this->location_id) {
@@ -326,28 +351,41 @@ class Create extends Component
     {
         $customers = Customer::orderBy('name')->get();
         $locations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
-        $products = Product::orderBy('name')->get();
+        $availableProducts = collect();
+        $availableQuantities = [];
         $productsByIndex = [];
         $quickProducts = collect();
 
-        if (trim($this->product_search) !== '' && $this->location_id) {
-            $search = '%' . trim($this->product_search) . '%';
-
-            $quickProducts = Product::query()
+        if ($this->location_id) {
+            $availableProducts = Product::query()
                 ->select('products.*')
                 ->join('stock_balances', 'stock_balances.product_id', '=', 'products.id')
                 ->where('stock_balances.location_id', $this->location_id)
                 ->where('stock_balances.quantity', '>', 0)
-                ->where(function ($query) use ($search) {
-                    $query->where('products.name', 'like', $search)
-                        ->orWhere('products.sku', 'like', $search)
-                        ->orWhere('products.barcode', 'like', $search);
-                })
                 ->orderBy('products.name')
-                ->limit(8)
                 ->get()
                 ->unique('id')
                 ->values();
+
+            $availableQuantities = StockBalance::query()
+                ->where('location_id', $this->location_id)
+                ->where('quantity', '>', 0)
+                ->pluck('quantity', 'product_id')
+                ->map(fn ($quantity) => (float) $quantity)
+                ->all();
+        }
+
+        if (trim($this->product_search) !== '' && $this->location_id) {
+            $needle = mb_strtolower(trim($this->product_search));
+
+            $quickProducts = $availableProducts
+                ->filter(function (Product $product) use ($needle) {
+                    return str_contains(mb_strtolower($product->name), $needle)
+                        || str_contains(mb_strtolower((string) $product->sku), $needle)
+                        || str_contains(mb_strtolower((string) $product->barcode), $needle);
+                })
+                ->values()
+                ->take(8);
         }
 
         foreach ($this->items as $index => $item) {
@@ -360,7 +398,7 @@ class Create extends Component
 
             $currentProductId = (int) ($item['product_id'] ?? 0);
 
-            $productsByIndex[$index] = $products
+            $productsByIndex[$index] = $availableProducts
                 ->filter(function ($product) use ($selectedInOtherLines, $currentProductId) {
                     return $product->id === $currentProductId
                         || !in_array((int) $product->id, $selectedInOtherLines, true);
@@ -370,7 +408,7 @@ class Create extends Component
 
         $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
 
-        return view('livewire.sales.create', compact('customers', 'locations', 'products', 'productsByIndex', 'quickProducts', 'canSelectAnyLocation'))
+        return view('livewire.sales.create', compact('customers', 'locations', 'availableProducts', 'availableQuantities', 'productsByIndex', 'quickProducts', 'canSelectAnyLocation'))
             ->layout('layouts.app');
     }
 }

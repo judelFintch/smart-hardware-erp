@@ -71,7 +71,7 @@
                 <div class="mt-2 space-y-1.5">
                     @forelse ($quickProducts as $product)
                         @php
-                            $quickStock = $this->getItemAvailableStock($product->id);
+                            $quickStock = (float) ($availableQuantities[$product->id] ?? 0);
                             $quickPrice = $this->getItemUnitPrice($product->id);
                         @endphp
                         <button
@@ -111,12 +111,12 @@
                     @php
                         $productId = isset($item['product_id']) && $item['product_id'] !== '' ? (int) $item['product_id'] : null;
                         $unitPrice = $this->getItemUnitPrice($productId);
-                        $availableStock = $this->getItemAvailableStock($productId);
+                        $availableStock = (float) ($availableQuantities[$productId] ?? 0);
                         $lineTotal = $this->getItemLineTotal($item);
                     @endphp
                     <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-2">
                         <div class="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1.7fr)_88px_110px_84px_auto] md:items-center">
-                            <select wire:model.live="items.{{ $index }}.product_id" class="input">
+                            <select wire:model.live="items.{{ $index }}.product_id" class="input" @disabled(blank($location_id))>
                                 <option value="">-- Article --</option>
                                 @foreach (($productsByIndex[$index] ?? collect()) as $product)
                                     <option value="{{ $product->id }}">{{ $product->name }}</option>
@@ -151,6 +151,12 @@
                         </div>
                     </div>
                 @endforeach
+
+                @if ($location_id && $availableProducts->isEmpty())
+                    <div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+                        Aucun article en stock dans ce magasin.
+                    </div>
+                @endif
             </div>
             <div class="border-t border-slate-100 bg-slate-50/70 px-3 py-2.5">
                 <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-xs text-slate-600">
