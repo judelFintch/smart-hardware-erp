@@ -1,27 +1,24 @@
 <div class="space-y-3">
-    <div class="rounded-[20px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-emerald-50 px-4 py-3 shadow-sm">
-        <div class="flex flex-col gap-2 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-emerald-700">Ventes</div>
-                <div class="mt-1 text-xl font-semibold text-slate-900">Nouvelle vente</div>
-                <p class="text-xs text-slate-500">Prix auto, stock disponible et total ligne visibles sans prendre trop d'espace.</p>
-            </div>
-            <a class="btn btn-secondary" href="{{ route('sales.index') }}" wire:navigate>Retour</a>
+    <div class="flex items-center justify-between">
+        <div>
+            <div class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Ventes</div>
+            <div class="text-xl font-semibold text-slate-900">Nouvelle vente</div>
         </div>
+        <a class="btn btn-secondary" href="{{ route('sales.index') }}" wire:navigate>Retour</a>
     </div>
 
     <form wire:submit.prevent="save" class="space-y-3" data-autosave data-autosave-key="sale-create">
-        <div class="rounded-[20px] border border-slate-200 bg-white p-3 shadow-sm">
-            <div class="grid gap-2 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+            <div class="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
             <div>
-                <label class="block text-xs font-medium text-slate-600">Type</label>
+                <label class="mb-1 block text-xs font-medium text-slate-600">Type</label>
                 <select wire:model.defer="type" class="input" required>
                     <option value="cash">Comptant</option>
                     <option value="credit">Crédit</option>
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-600">Client (crédit)</label>
+                <label class="mb-1 block text-xs font-medium text-slate-600">Client</label>
                 <select wire:model.defer="customer_id" class="input">
                     <option value="">-- Aucun --</option>
                     @foreach ($customers as $customer)
@@ -31,7 +28,7 @@
                 @error('customer_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-600">Magasin de vente</label>
+                <label class="mb-1 block text-xs font-medium text-slate-600">Magasin</label>
                 <select wire:model.live="location_id" class="input" required @disabled(!$canSelectAnyLocation)>
                     <option value="">-- Choisir --</option>
                     @foreach ($locations as $location)
@@ -41,26 +38,26 @@
                 @error('location_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-600">Date</label>
+                <label class="mb-1 block text-xs font-medium text-slate-600">Date</label>
                 <input wire:model.defer="sold_at" type="datetime-local" class="input">
             </div>
             <div>
-                <label class="block text-xs font-medium text-slate-600">Remise globale</label>
+                <label class="mb-1 block text-xs font-medium text-slate-600">Remise</label>
                 <input wire:model.live.debounce.300ms="global_discount_amount" type="number" step="0.01" min="0" class="input" placeholder="0.00">
             </div>
         </div>
         </div>
 
-        <div class="rounded-[20px] border border-slate-200 bg-white p-3 shadow-sm">
-            <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+        <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+            <div class="flex flex-col gap-1 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                     <div class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Ajout rapide</div>
-                    <div class="text-sm font-semibold text-slate-900">Recherche article par nom, code ou code-barres</div>
+                    <div class="text-sm font-semibold text-slate-900">Nom, code ou code-barres</div>
                 </div>
-                <div class="text-xs text-slate-500">Un clic ajoute directement l’article à la vente.</div>
+                <div class="text-xs text-slate-500">Un clic ajoute l’article.</div>
             </div>
 
-            <div class="mt-3">
+            <div class="mt-2">
                 <input
                     wire:model.live.debounce.250ms="product_search"
                     type="text"
@@ -71,7 +68,7 @@
             </div>
 
             @if (trim($product_search) !== '')
-                <div class="mt-3 space-y-2">
+                <div class="mt-2 space-y-1.5">
                     @forelse ($quickProducts as $product)
                         @php
                             $quickStock = $this->getItemAvailableStock($product->id);
@@ -80,7 +77,7 @@
                         <button
                             type="button"
                             wire:click="addProduct({{ $product->id }})"
-                            class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-emerald-200 hover:bg-emerald-50"
+                            class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-slate-300 hover:bg-white"
                         >
                             <div>
                                 <div class="text-sm font-semibold text-slate-900">{{ $product->name }}</div>
@@ -100,7 +97,7 @@
             @endif
         </div>
 
-        <div class="rounded-[20px] border border-slate-200 bg-white shadow-sm overflow-hidden">
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-3 py-2.5">
                 <div>
                     <div class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Articles</div>
@@ -108,7 +105,7 @@
                 </div>
                 <button type="button" wire:click="addItem" class="btn btn-secondary">Ajouter ligne</button>
             </div>
-            <div class="space-y-1.5 p-2">
+            <div class="space-y-2 p-2">
                 @error('items') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
                 @foreach ($items as $index => $item)
                     @php
@@ -117,17 +114,21 @@
                         $availableStock = $this->getItemAvailableStock($productId);
                         $lineTotal = $this->getItemLineTotal($item);
                     @endphp
-                    <div class="rounded-xl border border-slate-200 bg-slate-50/70 px-2.5 py-2">
-                        <div class="grid grid-cols-1 gap-1.5 md:grid-cols-[1.75fr_0.62fr_0.72fr_auto] md:items-center">
+                    <div class="rounded-xl border border-slate-200 bg-slate-50/70 p-2">
+                        <div class="grid grid-cols-1 gap-2 md:grid-cols-[minmax(0,1.7fr)_88px_110px_84px_auto] md:items-center">
                             <select wire:model.live="items.{{ $index }}.product_id" class="input">
                                 <option value="">-- Article --</option>
-                                @foreach ($products as $product)
+                                @foreach (($productsByIndex[$index] ?? collect()) as $product)
                                     <option value="{{ $product->id }}">{{ $product->name }}</option>
                                 @endforeach
                             </select>
+                            <div class="rounded-lg border border-cyan-200 bg-cyan-50 px-2 py-1.5 text-center">
+                                <div class="text-[10px] uppercase tracking-[0.12em] text-cyan-700">Stock</div>
+                                <div class="font-semibold text-cyan-900">{{ number_format($availableStock, 3) }}</div>
+                            </div>
                             <input wire:model.live.debounce.300ms="items.{{ $index }}.quantity" type="number" step="0.001" class="input" placeholder="Qté">
-                            <div class="rounded-lg bg-white px-2.5 py-1.5 text-right ring-1 ring-slate-200">
-                                <div class="text-[11px] uppercase tracking-[0.14em] text-slate-400">PU auto</div>
+                            <div class="rounded-lg bg-white px-2 py-1.5 text-right ring-1 ring-slate-200">
+                                <div class="text-[10px] uppercase tracking-[0.12em] text-slate-400">PU</div>
                                 <div class="font-semibold text-slate-900">{{ number_format($unitPrice, 2) }}</div>
                             </div>
                             <button
@@ -145,22 +146,17 @@
                                 </svg>
                             </button>
                         </div>
-                        <div class="mt-1.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 text-xs">
-                            <div class="flex flex-wrap items-center gap-3 text-slate-500">
-                                <span>Stock: <span class="font-semibold text-slate-800">{{ number_format($availableStock, 3) }}</span></span>
-                            </div>
-                            <div class="text-slate-500">
-                                Total ligne: <span class="font-semibold text-slate-900">{{ number_format($lineTotal, 2) }}</span>
-                            </div>
+                        <div class="mt-1.5 flex items-center justify-end text-xs text-slate-500">
+                            Total ligne: <span class="ml-1 font-semibold text-slate-900">{{ number_format($lineTotal, 2) }}</span>
                         </div>
                     </div>
                 @endforeach
             </div>
-            <div class="border-t border-slate-100 bg-slate-50/70 px-3 py-2">
-                <div class="flex flex-wrap items-center justify-end gap-x-5 gap-y-1 text-xs text-slate-600">
-                    <span>Sous-total: <span class="font-semibold text-slate-900">{{ number_format($this->getSubtotalPreview(), 2) }}</span></span>
-                    <span>Remise globale: <span class="font-semibold text-slate-900">{{ number_format((float) $global_discount_amount, 2) }}</span></span>
-                    <span>Total net: <span class="font-semibold text-slate-900">{{ number_format($this->getTotalPreview(), 2) }}</span></span>
+            <div class="border-t border-slate-100 bg-slate-50/70 px-3 py-2.5">
+                <div class="flex flex-wrap items-center justify-end gap-x-4 gap-y-1 text-xs text-slate-600">
+                    <span>Sous-total <span class="ml-1 font-semibold text-slate-900">{{ number_format($this->getSubtotalPreview(), 2) }}</span></span>
+                    <span>Remise <span class="ml-1 font-semibold text-slate-900">{{ number_format((float) $global_discount_amount, 2) }}</span></span>
+                    <span>Total <span class="ml-1 font-semibold text-slate-900">{{ number_format($this->getTotalPreview(), 2) }}</span></span>
                 </div>
             </div>
         </div>

@@ -69,4 +69,32 @@ class SaleCreateTest extends TestCase
             ->assertSet('items.0.product_id', $product->id)
             ->assertSet('items.0.quantity', '2.000');
     }
+
+    public function test_same_product_can_not_be_selected_twice_on_manual_lines(): void
+    {
+        $user = User::factory()->create(['role' => 'owner']);
+        $location = StockLocation::query()->create(['code' => 'MAG3', 'name' => 'Magasin 3']);
+        $product = Product::query()->create([
+            'sku' => 'SKU-SALE-003',
+            'name' => 'Pince',
+            'sale_price_local' => 15,
+            'is_active' => true,
+        ]);
+
+        StockBalance::query()->create([
+            'product_id' => $product->id,
+            'location_id' => $location->id,
+            'quantity' => 9,
+            'sale_price_local' => 15,
+        ]);
+
+        $this->actingAs($user);
+
+        Livewire::test(Create::class)
+            ->set('location_id', $location->id)
+            ->set('items.0.product_id', $product->id)
+            ->set('items.1.product_id', $product->id)
+            ->assertSet('items.1.product_id', null)
+            ->assertHasErrors('items');
+    }
 }

@@ -46,6 +46,36 @@ class Create extends Component
         $this->items = array_values($this->items);
     }
 
+    public function updatedItems($value, ?string $name = null): void
+    {
+        if (!$name || !str_ends_with($name, '.product_id')) {
+            return;
+        }
+
+        $index = (int) explode('.', $name)[0];
+        $productId = (int) $value;
+
+        if ($productId === 0) {
+            return;
+        }
+
+        foreach ($this->items as $itemIndex => $item) {
+            if ($itemIndex === $index) {
+                continue;
+            }
+
+            if ((int) ($item['product_id'] ?? 0) === $productId) {
+                $this->items[$index]['product_id'] = null;
+                $this->items[$index]['quantity'] = null;
+                $this->addError('items', 'Cet article est deja selectionne sur une autre ligne.');
+
+                return;
+            }
+        }
+
+        $this->resetErrorBag('items');
+    }
+
     public function addProduct(int $productId): void
     {
         if (!$this->location_id) {
@@ -163,7 +193,7 @@ class Create extends Component
             'location_id' => ['required', 'exists:stock_locations,id'],
             'sold_at' => ['nullable', 'date'],
             'global_discount_amount' => ['nullable', 'numeric', 'min:0'],
-            'items.*.product_id' => ['nullable', 'exists:products,id'],
+            'items.*.product_id' => ['nullable', 'distinct', 'exists:products,id'],
             'items.*.quantity' => ['nullable', 'numeric', 'min:0.001'],
         ]);
 
@@ -297,6 +327,7 @@ class Create extends Component
         $customers = Customer::orderBy('name')->get();
         $locations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
         $products = Product::orderBy('name')->get();
+        $productsByIndex = [];
         $quickProducts = collect();
 
         if (trim($this->product_search) !== '' && $this->location_id) {
@@ -319,9 +350,27 @@ class Create extends Component
                 ->values();
         }
 
+        foreach ($this->items as $index => $item) {
+            $selectedInOtherLines = collect($this->items)
+                ->except($index)
+                ->pluck('product_id')
+                ->filter()
+                ->map(fn ($productId) => (int) $productId)
+                ->all();
+
+            $currentProductId = (int) ($item['product_id'] ?? 0);
+
+            $productsByIndex[$index] = $products
+                ->filter(function ($product) use ($selectedInOtherLines, $currentProductId) {
+                    return $product->id === $currentProductId
+                        || !in_array((int) $product->id, $selectedInOtherLines, true);
+                })
+                ->values();
+        }
+
         $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
 
-        return view('livewire.sales.create', compact('customers', 'locations', 'products', 'quickProducts', 'canSelectAnyLocation'))
+        return view('livewire.sales.create', compact('customers', 'locations', 'products', 'productsByIndex', 'quickProducts', 'canSelectAnyLocation'))
             ->layout('layouts.app');
     }
 }
