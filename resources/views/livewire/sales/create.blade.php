@@ -51,6 +51,55 @@
         </div>
         </div>
 
+        <div class="rounded-[20px] border border-slate-200 bg-white p-3 shadow-sm">
+            <div class="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+                <div>
+                    <div class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Ajout rapide</div>
+                    <div class="text-sm font-semibold text-slate-900">Recherche article par nom, code ou code-barres</div>
+                </div>
+                <div class="text-xs text-slate-500">Un clic ajoute directement l’article à la vente.</div>
+            </div>
+
+            <div class="mt-3">
+                <input
+                    wire:model.live.debounce.250ms="product_search"
+                    type="text"
+                    class="input"
+                    placeholder="Rechercher un article..."
+                >
+                @error('product_search') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+            </div>
+
+            @if (trim($product_search) !== '')
+                <div class="mt-3 space-y-2">
+                    @forelse ($quickProducts as $product)
+                        @php
+                            $quickStock = $this->getItemAvailableStock($product->id);
+                            $quickPrice = $this->getItemUnitPrice($product->id);
+                        @endphp
+                        <button
+                            type="button"
+                            wire:click="addProduct({{ $product->id }})"
+                            class="flex w-full items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-left hover:border-emerald-200 hover:bg-emerald-50"
+                        >
+                            <div>
+                                <div class="text-sm font-semibold text-slate-900">{{ $product->name }}</div>
+                                <div class="text-xs text-slate-500">{{ $product->sku }}</div>
+                            </div>
+                            <div class="text-right text-xs text-slate-600">
+                                <div>Stock: <span class="font-semibold text-slate-900">{{ number_format($quickStock, 3) }}</span></div>
+                                <div>PU: <span class="font-semibold text-slate-900">{{ number_format($quickPrice, 2) }}</span></div>
+                            </div>
+                        </button>
+                    @empty
+                        <div class="rounded-xl border border-dashed border-slate-300 px-3 py-2 text-sm text-slate-500">
+                            Aucun article disponible pour cette recherche dans le magasin sélectionné.
+                        </div>
+                    @endforelse
+                </div>
+            @endif
+        </div>
+
         <div class="rounded-[20px] border border-slate-200 bg-white shadow-sm overflow-hidden">
             <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-3 py-2.5">
                 <div>

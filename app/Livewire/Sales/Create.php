@@ -16,6 +16,7 @@ use Livewire\Component;
 class Create extends Component
 {
     public string $type = 'cash';
+    public string $product_search = '';
     public ?int $customer_id = null;
     public ?int $location_id = null;
     public ?string $sold_at = null;
@@ -43,6 +44,64 @@ class Create extends Component
     {
         unset($this->items[$index]);
         $this->items = array_values($this->items);
+    }
+
+    public function addProduct(int $productId): void
+    {
+        if (!$this->location_id) {
+            $this->addError('product_search', 'Choisis d’abord le magasin de vente.');
+            return;
+        }
+
+        $product = Product::find($productId);
+
+        if (!$product) {
+            $this->addError('product_search', 'Article introuvable.');
+            return;
+        }
+
+        $availableStock = $this->getItemAvailableStock($product->id);
+
+        if ($availableStock <= 0) {
+            $this->addError('product_search', "Aucun stock disponible pour {$product->name}.");
+            return;
+        }
+
+        foreach ($this->items as $index => $item) {
+            if ((int) ($item['product_id'] ?? 0) !== $product->id) {
+                continue;
+            }
+
+            $currentQuantity = (float) ($item['quantity'] ?? 0);
+            $nextQuantity = $currentQuantity + 1;
+
+            if ($nextQuantity > $availableStock) {
+                $this->addError('product_search', "Stock insuffisant pour ajouter une unité de plus sur {$product->name}.");
+                return;
+            }
+
+            $this->items[$index]['quantity'] = number_format($nextQuantity, 3, '.', '');
+            $this->product_search = '';
+            $this->resetErrorBag('product_search');
+
+            return;
+        }
+
+        $targetIndex = collect($this->items)
+            ->search(fn (array $item) => empty($item['product_id']));
+
+        if ($targetIndex === false) {
+            $this->addItem();
+            $targetIndex = array_key_last($this->items);
+        }
+
+        $this->items[$targetIndex] = [
+            'product_id' => $product->id,
+            'quantity' => '1.000',
+        ];
+
+        $this->product_search = '';
+        $this->resetErrorBag('product_search');
     }
 
     public function getItemUnitPrice(?int $productId): float
@@ -238,9 +297,31 @@ class Create extends Component
         $customers = Customer::orderBy('name')->get();
         $locations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
         $products = Product::orderBy('name')->get();
+        $quickProducts = collect();
+
+        if (trim($this->product_search) !== '' && $this->location_id) {
+            $search = '%' . trim($this->product_search) . '%';
+
+            $quickProducts = Product::query()
+                ->select('products.*')
+                ->join('stock_balances', 'stock_balances.product_id', '=', 'products.id')
+                ->where('stock_balances.location_id', $this->location_id)
+                ->where('stock_balances.quantity', '>', 0)
+                ->where(function ($query) use ($search) {
+                    $query->where('products.name', 'like', $search)
+                        ->orWhere('products.sku', 'like', $search)
+                        ->orWhere('products.barcode', 'like', $search);
+                })
+                ->orderBy('products.name')
+                ->limit(8)
+                ->get()
+                ->unique('id')
+                ->values();
+        }
+
         $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
 
-        return view('livewire.sales.create', compact('customers', 'locations', 'products', 'canSelectAnyLocation'))
+        return view('livewire.sales.create', compact('customers', 'locations', 'products', 'quickProducts', 'canSelectAnyLocation'))
             ->layout('layouts.app');
     }
 }
