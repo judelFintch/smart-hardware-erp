@@ -21,6 +21,7 @@ use App\Models\Sale;
 use App\Models\StockTransfer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Livewire\Reports\Financial as ReportsFinancial;
+use App\Livewire\Reports\Sales as ReportsSales;
 use App\Livewire\Sales\Create as SalesCreate;
 use App\Livewire\Sales\Index as SalesIndex;
 use App\Livewire\Sales\Show as SalesShow;
@@ -138,6 +139,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('inventory-counts/create', InventoryCountsCreate::class)->middleware('role:owner,manager')->name('inventory-counts.create');
 
     Route::get('reports/financial', ReportsFinancial::class)->middleware('role:owner,manager')->name('reports.financial');
+    Route::get('reports/sales', ReportsSales::class)->middleware('role:owner,manager')->name('reports.sales');
     Route::get('reports/activity', ActivityLogsIndex::class)->middleware('role:owner,manager')->name('reports.activity');
     Route::get('notifications', NotificationsIndex::class)->middleware('role:owner,manager')->name('notifications.index');
     Route::get('trash', TrashIndex::class)->middleware('role:owner,manager')->name('trash.index');

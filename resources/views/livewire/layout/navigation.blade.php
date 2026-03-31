@@ -94,6 +94,9 @@ new class extends Component
                     <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.financial') }}" wire:navigate>
                         Rapports
                     </a>
+                    <a class="nav-link {{ request()->routeIs('reports.sales') ? 'active' : '' }}" href="{{ route('reports.sales') }}" wire:navigate>
+                        Rapport ventes
+                    </a>
                     <a class="nav-link {{ request()->routeIs('reports.activity') ? 'active' : '' }}" href="{{ route('reports.activity') }}" wire:navigate>
                         Journal d'activité
                     </a>
@@ -178,6 +181,7 @@ new class extends Component
                 @if ($isManager)
                     <div class="sidebar-title">Analyse</div>
                     <a class="nav-link {{ request()->routeIs('reports.*') ? 'active' : '' }}" href="{{ route('reports.financial') }}" wire:navigate>Rapports</a>
+                    <a class="nav-link {{ request()->routeIs('reports.sales') ? 'active' : '' }}" href="{{ route('reports.sales') }}" wire:navigate>Rapport ventes</a>
                     <a class="nav-link {{ request()->routeIs('reports.activity') ? 'active' : '' }}" href="{{ route('reports.activity') }}" wire:navigate>Journal d'activité</a>
                     <a class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}" href="{{ route('notifications.index') }}" wire:navigate>Notifications</a>
                     <div class="sidebar-title">Système</div>

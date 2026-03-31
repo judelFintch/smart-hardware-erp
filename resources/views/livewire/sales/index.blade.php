@@ -15,6 +15,9 @@
             <div class="flex flex-wrap gap-2">
                 <button wire:click="export" class="btn btn-secondary" type="button">Exporter Excel</button>
                 <button wire:click="exportPdf" class="btn btn-secondary" type="button">Exporter PDF</button>
+                @if (in_array(auth()->user()->role, ['owner', 'manager'], true))
+                    <a href="{{ route('reports.sales') }}" class="btn btn-secondary" wire:navigate>Rapport détaillé</a>
+                @endif
                 <a href="{{ route('sales.create') }}" class="btn btn-primary" wire:navigate>Nouvelle vente</a>
             </div>
         </div>

@@ -1,11 +1,16 @@
 <div class="space-y-6">
     <div class="rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-6 shadow-sm">
-        <div class="max-w-2xl">
-            <div class="inline-flex items-center rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
-                Reporting financier
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div class="max-w-2xl">
+                <div class="inline-flex items-center rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
+                    Reporting financier
+                </div>
+                <h1 class="mt-3 text-3xl font-semibold text-slate-900">Performance, crédit restant et valorisation du stock</h1>
+                <p class="mt-2 text-sm text-slate-500">Filtre une période pour analyser les ventes, les coûts, les dépenses et l’état du stock par entité.</p>
             </div>
-            <h1 class="mt-3 text-3xl font-semibold text-slate-900">Performance, crédit restant et valorisation du stock</h1>
-            <p class="mt-2 text-sm text-slate-500">Filtre une période pour analyser les ventes, les coûts, les dépenses et l’état du stock par entité.</p>
+            <div class="flex flex-wrap gap-2">
+                <a href="{{ route('reports.sales') }}" class="btn btn-secondary" wire:navigate>Rapport de ventes</a>
+            </div>
         </div>
     </div>
 
