@@ -1,11 +1,11 @@
 <div class="space-y-6">
     <div class="rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-cyan-50 p-6 shadow-sm">
-        <div class="max-w-2xl">
+        <div class="max-w-3xl">
             <div class="inline-flex items-center rounded-full bg-cyan-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-cyan-700">
                 Santé système
             </div>
             <h1 class="mt-3 text-3xl font-semibold text-slate-900">Services, stockage et configuration applicative</h1>
-            <p class="mt-2 text-sm text-slate-500">Vue rapide de l’état technique de l’environnement pour repérer les points de défaillance ou de configuration.</p>
+            <p class="mt-2 text-sm text-slate-500">Diagnostic rapide de l’infrastructure applicative: connectivité, drivers actifs, journaux, espace disque et version runtime.</p>
         </div>
     </div>
 
@@ -40,6 +40,7 @@
                 </span>
             </div>
             <div class="mt-2 text-sm text-slate-500">Écriture des fichiers applicatifs.</div>
+            <div class="mt-1 text-xs text-slate-400">Libre: {{ $data['storage']['free_space'] }}</div>
         </div>
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Queue</div>
@@ -48,7 +49,7 @@
         </div>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="text-lg font-semibold text-slate-900">Répertoire public</h2>
             <div class="mt-4">
@@ -66,11 +67,46 @@
         </div>
 
         <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-slate-900">Session</h2>
+            <div class="mt-4 text-sm text-slate-600">Driver: <span class="font-medium text-slate-900">{{ $data['session']['driver'] }}</span></div>
+            <div class="mt-2 text-sm text-slate-500">Support d’authentification et persistance des sessions.</div>
+        </div>
+
+        <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
             <h2 class="text-lg font-semibold text-slate-900">Application</h2>
             <div class="mt-4 space-y-2 text-sm text-slate-600">
                 <div>Env: <span class="font-medium text-slate-900">{{ $data['app']['env'] }}</span></div>
                 <div>Debug: <span class="font-medium text-slate-900">{{ $data['app']['debug'] }}</span></div>
                 <div>Timezone: <span class="font-medium text-slate-900">{{ $data['app']['timezone'] }}</span></div>
+                <div>PHP: <span class="font-medium text-slate-900">{{ $data['app']['php'] }}</span></div>
+                <div>Laravel: <span class="font-medium text-slate-900">{{ $data['app']['laravel'] }}</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid gap-4 xl:grid-cols-3">
+        <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-slate-900">Base de données</h2>
+            <div class="mt-4 space-y-2 text-sm text-slate-600">
+                <div>Connexion: <span class="font-medium text-slate-900">{{ $data['db']['connection'] }}</span></div>
+                <div>Base active: <span class="font-medium text-slate-900">{{ $data['db']['database'] }}</span></div>
+            </div>
+        </div>
+
+        <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-slate-900">Cache et URL</h2>
+            <div class="mt-4 space-y-2 text-sm text-slate-600">
+                <div>Cache: <span class="font-medium text-slate-900">{{ $data['cache']['driver'] }}</span></div>
+                <div>URL app: <span class="font-medium break-all text-slate-900">{{ $data['app']['url'] }}</span></div>
+            </div>
+        </div>
+
+        <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-slate-900">Journal applicatif</h2>
+            <div class="mt-4 space-y-2 text-sm text-slate-600">
+                <div>Écriture: <span class="font-medium text-slate-900">{{ $data['logs']['writable'] ? 'OK' : 'Erreur' }}</span></div>
+                <div>Dernier fichier: <span class="font-medium text-slate-900">{{ $data['logs']['latest_file'] ?? 'Aucun' }}</span></div>
+                <div>Taille: <span class="font-medium text-slate-900">{{ $data['logs']['latest_size'] }}</span></div>
             </div>
         </div>
     </div>
