@@ -42,6 +42,9 @@ new class extends Component
                         Dashboard
                     </a>
                 @endif
+                <a class="nav-link {{ request()->routeIs('help.*') ? 'active' : '' }}" href="{{ route('help.index') }}" wire:navigate>
+                    Aide
+                </a>
 
                 <div class="sidebar-title">Catalogue</div>
                 <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}" wire:navigate>
@@ -157,6 +160,7 @@ new class extends Component
                 @if ($isManager)
                     <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}" wire:navigate>Dashboard</a>
                 @endif
+                <a class="nav-link {{ request()->routeIs('help.*') ? 'active' : '' }}" href="{{ route('help.index') }}" wire:navigate>Aide</a>
 
                 <div class="sidebar-title">Catalogue</div>
                 <a class="nav-link {{ request()->routeIs('products.*') ? 'active' : '' }}" href="{{ route('products.index') }}" wire:navigate>Articles</a>
