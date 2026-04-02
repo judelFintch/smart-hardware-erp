@@ -33,7 +33,7 @@
             </div>
             <div class="flex min-w-0 items-baseline justify-between gap-2 border-b border-slate-100 py-1.5 md:border-b-0 md:border-r md:px-3">
                 <span class="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Stock affiché</span>
-                <span class="shrink-0 text-sm font-semibold text-slate-900">{{ number_format($stats['stock_total'], 3) }}</span>
+                <span class="shrink-0 text-sm font-semibold text-slate-900">{{ $this->formatQuantity($stats['stock_total']) }}</span>
             </div>
             <div class="flex min-w-0 items-baseline justify-between gap-2 py-1.5 md:pl-3">
                 <span class="truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-500">Stock critique</span>
@@ -117,7 +117,7 @@
                                 </td>
                                 <td class="px-3 py-4 text-sm text-slate-600">{{ $product->unit?->code ?? '—' }}</td>
                                 <td class="px-3 py-4 text-right">
-                                    <div class="text-sm font-semibold text-slate-900">{{ number_format($stock, 3) }}</div>
+                                    <div class="text-sm font-semibold text-slate-900">{{ $this->formatQuantity($stock) }}</div>
                                     <div class="mt-1 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium {{ $isLowStock ? 'bg-amber-100 text-amber-700' : 'bg-emerald-100 text-emerald-700' }}">
                                         {{ $isLowStock ? 'Stock critique' : 'Stock OK' }}
                                     </div>

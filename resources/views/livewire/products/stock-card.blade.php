@@ -12,8 +12,8 @@
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-2 text-sm text-slate-600">
-                    <span class="rounded-full bg-white px-3 py-1 shadow-sm ring-1 ring-slate-200">Stock actuel: {{ number_format($totalStock, 3) }}</span>
-                    <span class="rounded-full bg-white px-3 py-1 shadow-sm ring-1 ring-slate-200">Seuil: {{ number_format((float) $product->reorder_level, 3) }}</span>
+                    <span class="rounded-full bg-white px-3 py-1 shadow-sm ring-1 ring-slate-200">Stock actuel: {{ $this->formatQuantity($totalStock) }}</span>
+                    <span class="rounded-full bg-white px-3 py-1 shadow-sm ring-1 ring-slate-200">Seuil: {{ $this->formatQuantity($product->reorder_level) }}</span>
                     <span class="rounded-full bg-white px-3 py-1 shadow-sm ring-1 ring-slate-200">Marge: {{ number_format((float) $product->sale_margin_percent, 2) }}%</span>
                 </div>
             </div>
@@ -27,7 +27,7 @@
     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
             <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Quantité totale</div>
-            <div class="mt-3 text-3xl font-semibold text-slate-900">{{ number_format($totalStock, 3) }}</div>
+            <div class="mt-3 text-3xl font-semibold text-slate-900">{{ $this->formatQuantity($totalStock) }}</div>
             <div class="mt-2 text-sm text-slate-500">Disponible sur l'ensemble des emplacements.</div>
         </div>
         <div class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -64,7 +64,7 @@
                                 <div class="mt-1 text-xs text-slate-500">PU {{ number_format((float) $balance->avg_cost_local, 2) }} · PV {{ number_format((float) $balance->sale_price_local, 2) }}</div>
                             </div>
                             <div class="text-right">
-                                <div class="text-lg font-semibold text-slate-900">{{ number_format((float) $balance->quantity, 3) }}</div>
+                                <div class="text-lg font-semibold text-slate-900">{{ $this->formatQuantity($balance->quantity) }}</div>
                                 <div class="mt-1 text-xs text-slate-500">unités</div>
                             </div>
                         </div>
@@ -107,9 +107,9 @@
                                         {{ $movement->fromLocation?->name ?? '—' }} → {{ $movement->toLocation?->name ?? '—' }}
                                     </td>
                                     <td class="px-6 py-4 text-right text-sm font-semibold {{ $movement->stock_delta > 0 ? 'text-emerald-600' : ($movement->stock_delta < 0 ? 'text-rose-600' : 'text-slate-500') }}">
-                                        {{ $movement->stock_delta > 0 ? '+' : '' }}{{ number_format((float) $movement->stock_delta, 3) }}
+                                        {{ $movement->stock_delta > 0 ? '+' : '' }}{{ $this->formatQuantity($movement->stock_delta) }}
                                     </td>
-                                    <td class="px-6 py-4 text-right text-sm font-semibold text-slate-900">{{ number_format((float) $movement->stock_after, 3) }}</td>
+                                    <td class="px-6 py-4 text-right text-sm font-semibold text-slate-900">{{ $this->formatQuantity($movement->stock_after) }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

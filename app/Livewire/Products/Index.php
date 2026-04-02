@@ -44,6 +44,13 @@ class Index extends Component
         $this->resetPage();
     }
 
+    public function formatQuantity(float|int|string|null $quantity): string
+    {
+        $value = (float) ($quantity ?? 0);
+
+        return rtrim(rtrim(number_format($value, 3, '.', ''), '0'), '.');
+    }
+
     protected function performDelete(int $productId): void
     {
         Product::whereKey($productId)->delete();
