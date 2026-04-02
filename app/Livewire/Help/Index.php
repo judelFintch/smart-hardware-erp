@@ -2,6 +2,13 @@
 
 namespace App\Livewire\Help;
 
+use App\Models\CompanySetting;
+use App\Models\Customer;
+use App\Models\Product;
+use App\Models\StockLocation;
+use App\Models\Supplier;
+use App\Models\Unit;
+use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Livewire\Component;
@@ -54,7 +61,81 @@ class Index extends Component
             return $sections->contains(fn (array $section) => $section['anchor'] === $item['anchor']);
         })->values();
 
-        return view('livewire.help.index', compact('sections', 'quickActions', 'smartGuides'))
+        $onboardingSteps = collect([
+            [
+                'title' => 'Configurer l’entreprise',
+                'description' => 'Complétez les informations de base et les seuils globaux.',
+                'done' => CompanySetting::query()->whereNotNull('name')->exists(),
+                'route' => 'company.settings',
+            ],
+            [
+                'title' => 'Créer les unités',
+                'description' => 'Préparez les unités comme pcs, kg, litre ou mètre.',
+                'done' => Unit::query()->count() > 0,
+                'route' => 'units.index',
+            ],
+            [
+                'title' => 'Créer les emplacements',
+                'description' => 'Ajoutez les dépôts et magasins utilisés dans le stock.',
+                'done' => StockLocation::query()->count() > 0,
+                'route' => 'stock-locations.index',
+            ],
+            [
+                'title' => 'Créer les produits',
+                'description' => 'Ajoutez les articles ou importez-les par fichier.',
+                'done' => Product::query()->count() > 0,
+                'route' => 'products.index',
+            ],
+            [
+                'title' => 'Créer les fournisseurs et clients',
+                'description' => 'Préparez les partenaires avant les opérations réelles.',
+                'done' => Supplier::query()->count() > 0 && Customer::query()->count() > 0,
+                'route' => 'suppliers.index',
+            ],
+            [
+                'title' => 'Créer les utilisateurs',
+                'description' => 'Ajoutez les comptes nécessaires selon les rôles.',
+                'done' => User::query()->count() > 1,
+                'route' => 'users.index',
+            ],
+        ])->filter(fn (array $step) => $this->canAccessRoute($step['route']))->values();
+
+        $faqItems = collect([
+            [
+                'question' => 'Pourquoi je ne peux pas accéder à une page ?',
+                'answer' => 'En général, cela vient du rôle utilisateur, de l’e-mail non vérifié, ou d’un emplacement non autorisé. Vérifiez aussi que vous êtes connecté avec le bon compte.',
+                'route' => 'help.index',
+                'anchor' => '20-resolution-rapide-des-problemes',
+            ],
+            [
+                'question' => 'Pourquoi une vente est refusée ?',
+                'answer' => 'La cause la plus fréquente est un stock insuffisant dans le magasin choisi. Vérifiez la quantité disponible, l’emplacement sélectionné et les lignes déjà saisies.',
+                'route' => 'sales.create',
+                'anchor' => null,
+            ],
+            [
+                'question' => 'Pourquoi mon stock semble faux ?',
+                'answer' => 'Commencez par consulter la fiche stock du produit, puis le journal des mouvements, les achats, les ventes, les transferts et les inventaires récents.',
+                'route' => 'stock-movements.index',
+                'anchor' => null,
+            ],
+            [
+                'question' => 'Comment ajouter rapidement beaucoup de produits ?',
+                'answer' => 'Utilisez l’import CSV ou Excel depuis le module Produits. Vérifiez d’abord les colonnes, l’unité et l’emplacement de stock choisi.',
+                'route' => 'products.index',
+                'anchor' => null,
+            ],
+            [
+                'question' => 'À quoi sert l’inventaire ?',
+                'answer' => 'L’inventaire sert à comparer le stock système avec le stock réellement compté afin de corriger les écarts et fiabiliser les quantités.',
+                'route' => 'inventory-counts.index',
+                'anchor' => null,
+            ],
+        ])->filter(function (array $item) {
+            return $this->canAccessRoute($item['route']) || $item['route'] === 'help.index';
+        })->values();
+
+        return view('livewire.help.index', compact('sections', 'quickActions', 'smartGuides', 'onboardingSteps', 'faqItems'))
             ->layout('layouts.app');
     }
 

@@ -79,6 +79,19 @@
         </div>
     </div>
 
+    @include('livewire.partials.context-help', [
+        'eyebrow' => 'Aide Produits',
+        'title' => 'Comment bien utiliser cette page',
+        'intro' => 'Utilisez cette page pour retrouver un article, contrôler son stock et importer rapidement un catalogue. Si vous cherchez l’historique complet d’un produit, ouvrez sa fiche stock.',
+        'items' => [
+            ['title' => 'Créer un article', 'text' => 'Cliquez sur Nouveau pour ajouter manuellement un produit avec son unité, son prix et son seuil.'],
+            ['title' => 'Importer un fichier', 'text' => 'Choisissez d’abord une entité de stock, puis importez votre CSV ou Excel pour injecter les quantités initiales.'],
+            ['title' => 'Contrôler le stock', 'text' => 'Utilisez la colonne Qté et le badge Stock critique pour repérer rapidement les articles à réapprovisionner.'],
+        ],
+        'actionRoute' => 'help.index',
+        'actionLabel' => 'Voir toute l’aide',
+    ])
+
     @error('importFile') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
     @error('import_location_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
     <div class="text-xs text-slate-500">

@@ -7,6 +7,19 @@
         <a class="btn btn-secondary" href="{{ route('purchases.index') }}" wire:navigate>Retour</a>
     </div>
     <form wire:submit.prevent="save" class="section-body space-y-6">
+        @include('livewire.partials.context-help', [
+            'eyebrow' => 'Aide Achat',
+            'title' => 'Avant d’enregistrer un achat',
+            'intro' => 'Un achat correct fait entrer le stock dans le bon emplacement et au bon coût. Prenez quelques secondes pour vérifier les champs clés.',
+            'items' => [
+                ['title' => 'Choisissez le bon fournisseur', 'text' => 'Le fournisseur doit correspondre à la commande réelle pour garder un historique fiable.'],
+                ['title' => 'Vérifiez le lieu de réception', 'text' => 'Le stock sera ajouté dans cet emplacement lors de la réception ou de l’approvisionnement.'],
+                ['title' => 'Contrôlez les lignes', 'text' => 'Chaque ligne doit avoir le bon article, la bonne quantité et le bon prix unitaire.'],
+            ],
+            'actionRoute' => 'help.index',
+            'actionLabel' => 'Ouvrir l’aide',
+        ])
+
         <div class="form-grid">
             <div>
                 <label class="block text-sm font-medium">Fournisseur</label>

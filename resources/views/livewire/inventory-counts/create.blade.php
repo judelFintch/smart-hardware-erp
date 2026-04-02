@@ -7,6 +7,19 @@
         <a class="btn btn-secondary" href="{{ route('inventory-counts.index') }}" wire:navigate>Retour</a>
     </div>
     <form wire:submit.prevent="save" class="section-body space-y-6" data-autosave data-autosave-key="inventory-count-create">
+        @include('livewire.partials.context-help', [
+            'eyebrow' => 'Aide Inventaire',
+            'title' => 'Faire un inventaire utile',
+            'intro' => 'Un inventaire sert à comparer le stock système et le stock réellement compté. Plus la saisie est précise, plus la correction sera fiable.',
+            'items' => [
+                ['title' => 'Choisissez le bon lieu', 'text' => 'Chaque inventaire concerne un seul emplacement. Vérifiez bien le dépôt ou magasin avant de commencer.'],
+                ['title' => 'Saisissez les quantités comptées', 'text' => 'Entrez la quantité réellement observée, même si elle diffère du stock attendu dans le système.'],
+                ['title' => 'Ajoutez une note si nécessaire', 'text' => 'Une note aide à expliquer un écart, une casse, une perte ou une correction particulière.'],
+            ],
+            'actionRoute' => 'help.index',
+            'actionLabel' => 'Ouvrir l’aide',
+        ])
+
         <div class="form-grid">
             <div>
                 <label class="block text-sm font-medium">Lieu</label>

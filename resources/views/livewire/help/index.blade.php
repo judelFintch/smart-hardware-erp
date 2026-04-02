@@ -80,6 +80,65 @@
         </section>
     @endif
 
+    @if ($onboardingSteps->isNotEmpty())
+        <section class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex items-center justify-between gap-3">
+                <div>
+                    <div class="inline-flex items-center rounded-full bg-cyan-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-cyan-700">
+                        Checklist de démarrage
+                    </div>
+                    <div class="mt-3 text-xl font-semibold text-slate-900">Vérifiez rapidement si votre système est prêt</div>
+                </div>
+            </div>
+            <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                @foreach ($onboardingSteps as $step)
+                    <a href="{{ route($step['route']) }}" wire:navigate class="rounded-[24px] border {{ $step['done'] ? 'border-emerald-200 bg-emerald-50/60' : 'border-slate-200 bg-slate-50/70' }} p-5 transition hover:shadow-sm">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="font-semibold leading-6 text-slate-900">{{ $step['title'] }}</div>
+                            <div class="rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] {{ $step['done'] ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600' }}">
+                                {{ $step['done'] ? 'Fait' : 'À faire' }}
+                            </div>
+                        </div>
+                        <p class="mt-3 text-sm leading-7 text-slate-600">{{ $step['description'] }}</p>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
+    @if ($faqItems->isNotEmpty())
+        <section class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <div>
+                <div class="inline-flex items-center rounded-full bg-violet-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-violet-700">
+                    FAQ intelligente
+                </div>
+                <div class="mt-3 text-xl font-semibold text-slate-900">Questions fréquentes des utilisateurs</div>
+            </div>
+            <div class="mt-5 space-y-3">
+                @foreach ($faqItems as $item)
+                    <div x-data="{ open: false }" class="overflow-hidden rounded-[22px] border border-slate-200 bg-slate-50/60">
+                        <button type="button" @click="open = !open" class="flex w-full items-center justify-between gap-4 px-5 py-4 text-left">
+                            <span class="font-semibold text-slate-900">{{ $item['question'] }}</span>
+                            <span class="text-slate-400" x-text="open ? '−' : '+'"></span>
+                        </button>
+                        <div x-show="open" x-collapse class="border-t border-slate-200 bg-white px-5 py-4">
+                            <p class="text-sm leading-7 text-slate-600">{{ $item['answer'] }}</p>
+                            @if (!empty($item['anchor']))
+                                <a href="#{{ $item['anchor'] }}" class="mt-3 inline-flex text-xs font-semibold uppercase tracking-[0.14em] text-cyan-700">
+                                    Lire le détail
+                                </a>
+                            @elseif (!empty($item['route']))
+                                <a href="{{ route($item['route']) }}" wire:navigate class="mt-3 inline-flex text-xs font-semibold uppercase tracking-[0.14em] text-cyan-700">
+                                    Ouvrir la page utile
+                                </a>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
     <div class="grid gap-6 xl:grid-cols-[280px_1fr]">
         <aside class="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm xl:sticky xl:top-20 xl:self-start">
             <div class="px-2">

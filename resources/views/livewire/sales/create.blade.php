@@ -8,6 +8,19 @@
     </div>
 
     <form wire:submit.prevent="save" class="space-y-3" data-autosave data-autosave-key="sale-create">
+        @include('livewire.partials.context-help', [
+            'eyebrow' => 'Aide Vente',
+            'title' => 'Réussir une vente sans erreur',
+            'intro' => 'La plupart des refus de vente viennent du mauvais magasin ou d’un stock insuffisant. Commencez toujours par choisir le bon emplacement.',
+            'items' => [
+                ['title' => 'Choisissez le bon magasin', 'text' => 'Le stock affiché et la validation de la vente dépendent directement du magasin sélectionné.'],
+                ['title' => 'Utilisez l’ajout rapide', 'text' => 'Tapez le nom, le code ou le code-barres pour ajouter plus vite les articles disponibles.'],
+                ['title' => 'Surveillez le stock ligne par ligne', 'text' => 'Le bloc Stock vous aide à voir immédiatement si la quantité demandée est réaliste.'],
+            ],
+            'actionRoute' => 'help.index',
+            'actionLabel' => 'Ouvrir l’aide',
+        ])
+
         <div class="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
             <div class="grid gap-2 md:grid-cols-2 xl:grid-cols-5">
             <div>
