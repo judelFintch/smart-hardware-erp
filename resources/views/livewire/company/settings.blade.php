@@ -76,11 +76,11 @@
         </div>
     </div>
 
-    <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="mb-5">
-            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Exploitation</div>
-            <div class="mt-1 text-lg font-semibold text-slate-900">Paramètres opérationnels</div>
-        </div>
+        <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="mb-5">
+                <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Exploitation</div>
+                <div class="mt-1 text-lg font-semibold text-slate-900">Paramètres opérationnels</div>
+            </div>
         <div class="form-grid">
             <div>
                 <label class="block text-sm font-medium">Devise</label>
@@ -114,6 +114,31 @@
             <div>
                 <label class="block text-sm font-medium">Seuil stock bas global</label>
                 <input wire:model.defer="low_stock_threshold" type="number" step="0.001" class="input">
+            </div>
+        </div>
+    </div>
+
+    <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
+        <div class="mb-5">
+            <div class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Sécurité</div>
+            <div class="mt-1 text-lg font-semibold text-slate-900">Alertes de connexion</div>
+            <div class="mt-2 text-sm text-slate-500">Envoie un email à chaque connexion réussie vers une seule adresse de réception configurable.</div>
+        </div>
+        <div class="grid gap-6 md:grid-cols-2">
+            <div class="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                <label class="flex items-start gap-3">
+                    <input wire:model.defer="login_alert_enabled" type="checkbox" class="mt-1 rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500">
+                    <span>
+                        <span class="block text-sm font-medium text-slate-900">Activer les alertes email de connexion</span>
+                        <span class="mt-1 block text-sm text-slate-500">Chaque authentification réussie déclenchera un email avec la date, l’IP et le navigateur.</span>
+                    </span>
+                </label>
+            </div>
+            <div>
+                <label class="block text-sm font-medium">Email destinataire des alertes</label>
+                <input wire:model.defer="login_alert_recipient" type="email" class="input" placeholder="alert@entreprise.com">
+                @error('login_alert_recipient') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+                <div class="mt-2 text-xs text-slate-500">L’adresse configurée ici reçoit toutes les notifications de connexion.</div>
             </div>
         </div>
     </div>

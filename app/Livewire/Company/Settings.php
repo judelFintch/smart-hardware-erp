@@ -18,6 +18,8 @@ class Settings extends Component
     public string $tax_id = '';
     public string $phone = '';
     public string $email = '';
+    public bool $login_alert_enabled = false;
+    public string $login_alert_recipient = '';
     public string $address = '';
     public string $currency = 'CDF';
     public string $currency_symbol = 'FC';
@@ -38,6 +40,8 @@ class Settings extends Component
         $this->tax_id = (string) ($this->company->tax_id ?? '');
         $this->phone = (string) ($this->company->phone ?? '');
         $this->email = (string) ($this->company->email ?? '');
+        $this->login_alert_enabled = (bool) ($this->company->login_alert_enabled ?? false);
+        $this->login_alert_recipient = (string) ($this->company->login_alert_recipient ?? '');
         $this->address = (string) ($this->company->address ?? '');
         $this->currency = (string) ($this->company->currency ?? 'CDF');
         $this->currency_symbol = (string) ($this->company->currency_symbol ?? 'FC');
@@ -58,6 +62,8 @@ class Settings extends Component
             'tax_id' => ['nullable', 'string', 'max:100'],
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
+            'login_alert_enabled' => ['required', 'boolean'],
+            'login_alert_recipient' => ['nullable', 'email', 'max:255', 'required_if:login_alert_enabled,1'],
             'address' => ['nullable', 'string', 'max:255'],
             'currency' => ['required', 'string', 'max:10'],
             'currency_symbol' => ['required', 'string', 'max:10'],
@@ -80,6 +86,7 @@ class Settings extends Component
         $data['tax_id'] = $data['tax_id'] ?: null;
         $data['phone'] = $data['phone'] ?: null;
         $data['email'] = $data['email'] ?: null;
+        $data['login_alert_recipient'] = $data['login_alert_enabled'] ? ($data['login_alert_recipient'] ?: null) : null;
         $data['address'] = $data['address'] ?: null;
         $data['tax_rate'] = (float) ($data['tax_rate'] ?? 0);
         $data['low_stock_threshold'] = (float) ($data['low_stock_threshold'] ?? 0);

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Listeners\SendLoginAlert;
 use App\Models\CompanySetting;
 use App\Models\Customer;
 use App\Models\Expense;
@@ -20,6 +21,8 @@ use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\User;
 use App\Observers\ActivityObserver;
+use Illuminate\Auth\Events\Login;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
 
@@ -38,6 +41,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Event::listen(Login::class, SendLoginAlert::class);
+
         Password::defaults(function () {
             return Password::min(12)
                 ->mixedCase()

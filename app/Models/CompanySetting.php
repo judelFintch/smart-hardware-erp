@@ -15,6 +15,8 @@ class CompanySetting extends Model
         'tax_id',
         'phone',
         'email',
+        'login_alert_enabled',
+        'login_alert_recipient',
         'address',
         'currency',
         'currency_symbol',
@@ -27,4 +29,11 @@ class CompanySetting extends Model
         'logo_path',
         'invoice_footer',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'login_alert_enabled' => 'boolean',
+        ];
+    }
 }
