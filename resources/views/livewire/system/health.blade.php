@@ -65,7 +65,9 @@
             <div class="mt-4 text-sm text-slate-600">Driver: <span class="font-medium text-slate-900">{{ $data['mail']['driver'] }}</span></div>
             <div class="mt-2 text-sm text-slate-600">Host: <span class="font-medium text-slate-900">{{ $data['mail']['host'] }}</span></div>
             <div class="mt-2 text-sm text-slate-600">Alertes connexion: <span class="font-medium text-slate-900">{{ $data['mail']['login_alert_enabled'] ? 'Actives' : 'Inactives' }}</span></div>
-            <div class="mt-2 text-sm text-slate-600">Destinataire: <span class="font-medium text-slate-900">{{ $data['mail']['login_alert_recipient'] ?: 'Non configuré' }}</span></div>
+            <div class="mt-2 text-sm text-slate-600">Email entreprise: <span class="font-medium text-slate-900">{{ $data['mail']['company_email'] ?: 'Non configuré' }}</span></div>
+            <div class="mt-2 text-sm text-slate-600">Email d’alerte dédié: <span class="font-medium text-slate-900">{{ $data['mail']['login_alert_recipient'] ?: 'Non configuré' }}</span></div>
+            <div class="mt-2 text-sm text-slate-600">Destinataires effectifs: <span class="font-medium text-slate-900">{{ $data['mail']['login_alert_recipients'] ? implode(', ', $data['mail']['login_alert_recipients']) : 'Aucun' }}</span></div>
             <div class="mt-4">
                 @php
                     $mailStatusTone = match ($data['mail']['login_alert_last_status']) {

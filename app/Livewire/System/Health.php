@@ -65,6 +65,11 @@ class Health extends Component
                 'host' => config('mail.mailers.smtp.host'),
                 'login_alert_enabled' => (bool) ($companySettings?->login_alert_enabled ?? false),
                 'login_alert_recipient' => $companySettings?->login_alert_recipient,
+                'company_email' => $companySettings?->email,
+                'login_alert_recipients' => collect([
+                    $companySettings?->login_alert_recipient,
+                    $companySettings?->email,
+                ])->filter()->unique()->values()->all(),
                 'login_alert_last_status' => $companySettings?->login_alert_last_status,
                 'login_alert_last_error' => $companySettings?->login_alert_last_error,
                 'login_alert_last_attempt_at' => $companySettings?->login_alert_last_attempt_at?->format('d/m/Y H:i:s'),

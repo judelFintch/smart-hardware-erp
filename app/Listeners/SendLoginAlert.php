@@ -23,12 +23,26 @@ class SendLoginAlert
 
         $settings = CompanySetting::query()->first();
 
-        if (! $settings?->login_alert_enabled || ! $settings->login_alert_recipient) {
+        if (! $settings?->login_alert_enabled) {
+            return;
+        }
+
+        $recipients = collect([
+            $settings->login_alert_recipient,
+            $settings->email,
+        ])
+            ->filter(fn (?string $email) => filled($email))
+            ->map(fn (string $email) => trim($email))
+            ->unique()
+            ->values()
+            ->all();
+
+        if ($recipients === []) {
             return;
         }
 
         try {
-            Notification::route('mail', $settings->login_alert_recipient)
+            Notification::route('mail', $recipients)
                 ->notify(new LoginAlertNotification(
                     user: $event->user,
                     ipAddress: request()->ip(),

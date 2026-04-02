@@ -63,7 +63,7 @@ class Settings extends Component
             'phone' => ['nullable', 'string', 'max:50'],
             'email' => ['nullable', 'email', 'max:255'],
             'login_alert_enabled' => ['required', 'boolean'],
-            'login_alert_recipient' => ['nullable', 'email', 'max:255', 'required_if:login_alert_enabled,1'],
+            'login_alert_recipient' => ['nullable', 'email', 'max:255'],
             'address' => ['nullable', 'string', 'max:255'],
             'currency' => ['required', 'string', 'max:10'],
             'currency_symbol' => ['required', 'string', 'max:10'],
@@ -76,6 +76,16 @@ class Settings extends Component
             'invoice_footer' => ['nullable', 'string'],
             'logo' => ['nullable', 'image', 'max:2048'],
         ]);
+
+        if (
+            $data['login_alert_enabled']
+            && blank($data['login_alert_recipient'] ?? null)
+            && blank($data['email'] ?? null)
+        ) {
+            $this->addError('login_alert_recipient', 'Renseignez un email d’alerte ou l’email principal de l’entreprise.');
+
+            return;
+        }
 
         if ($this->logo) {
             $path = $this->logo->store('company');

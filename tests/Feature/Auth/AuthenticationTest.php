@@ -51,6 +51,7 @@ class AuthenticationTest extends TestCase
         CompanySetting::create([
             'name' => 'Entreprise',
             'currency' => 'CDF',
+            'email' => 'contact@fintchweb.com',
             'login_alert_enabled' => true,
             'login_alert_recipient' => 'alert@fintchweb.com',
         ]);
@@ -67,7 +68,7 @@ class AuthenticationTest extends TestCase
 
         Notification::assertSentOnDemand(LoginAlertNotification::class, function ($notification, $channels, $notifiable) use ($user) {
             return in_array('mail', $channels, true)
-                && $notifiable->routes['mail'] === 'alert@fintchweb.com'
+                && $notifiable->routes['mail'] === ['alert@fintchweb.com', 'contact@fintchweb.com']
                 && $notification->user->is($user);
         });
 
@@ -85,6 +86,7 @@ class AuthenticationTest extends TestCase
         $settings = CompanySetting::create([
             'name' => 'Entreprise',
             'currency' => 'CDF',
+            'email' => 'contact@fintchweb.com',
             'login_alert_enabled' => true,
             'login_alert_recipient' => 'alert@fintchweb.com',
         ]);
@@ -134,6 +136,32 @@ class AuthenticationTest extends TestCase
             ->assertNoRedirect();
 
         $this->assertGuest();
+    }
+
+    public function test_login_alert_uses_company_email_when_no_dedicated_alert_email_is_configured(): void
+    {
+        Notification::fake();
+
+        CompanySetting::create([
+            'name' => 'Entreprise',
+            'currency' => 'CDF',
+            'email' => 'contact@fintchweb.com',
+            'login_alert_enabled' => true,
+            'login_alert_recipient' => null,
+        ]);
+
+        $user = User::factory()->create();
+
+        Volt::test('pages.auth.login')
+            ->set('form.email', $user->email)
+            ->set('form.password', 'password')
+            ->call('login');
+
+        Notification::assertSentOnDemand(LoginAlertNotification::class, function ($notification, $channels, $notifiable) use ($user) {
+            return in_array('mail', $channels, true)
+                && $notifiable->routes['mail'] === ['contact@fintchweb.com']
+                && $notification->user->is($user);
+        });
     }
 
     public function test_navigation_menu_can_be_rendered(): void

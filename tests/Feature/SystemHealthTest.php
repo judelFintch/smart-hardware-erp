@@ -31,6 +31,7 @@ class SystemHealthTest extends TestCase
         CompanySetting::create([
             'name' => 'Entreprise',
             'currency' => 'CDF',
+            'email' => 'contact@fintchweb.com',
             'login_alert_enabled' => true,
             'login_alert_recipient' => 'alert@fintchweb.com',
             'login_alert_last_status' => 'failed',
@@ -44,6 +45,7 @@ class SystemHealthTest extends TestCase
             ->assertOk()
             ->assertSee('Dernier envoi échoué')
             ->assertSee('SMTP authentication failed')
-            ->assertSee('alert@fintchweb.com');
+            ->assertSee('alert@fintchweb.com')
+            ->assertSee('contact@fintchweb.com');
     }
 }

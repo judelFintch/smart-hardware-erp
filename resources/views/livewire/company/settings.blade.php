@@ -138,7 +138,7 @@
                 <label class="block text-sm font-medium">Email destinataire des alertes</label>
                 <input wire:model.defer="login_alert_recipient" type="email" class="input" placeholder="alert@entreprise.com">
                 @error('login_alert_recipient') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
-                <div class="mt-2 text-xs text-slate-500">L’adresse configurée ici reçoit toutes les notifications de connexion.</div>
+                <div class="mt-2 text-xs text-slate-500">Cette adresse reçoit les alertes. L’email principal de l’entreprise est aussi ajouté automatiquement s’il est renseigné.</div>
             </div>
         </div>
     </div>
