@@ -9,6 +9,7 @@ use App\Models\StockBalance;
 use App\Models\StockLocation;
 use App\Services\StockService;
 use App\Support\LocationAccess;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Livewire\Component;
 
@@ -18,26 +19,47 @@ class Create extends Component
     public ?string $counted_at = null;
     public string $notes = '';
     public array $items = [];
+    public string $search = '';
+    public bool $showOnlyCounted = false;
 
     public function mount(): void
     {
         $this->location_id = LocationAccess::assignedLocationId();
-        $this->items = [
-            ['product_id' => null, 'counted_quantity' => null],
-            ['product_id' => null, 'counted_quantity' => null],
-            ['product_id' => null, 'counted_quantity' => null],
-        ];
+        $this->loadItemsForLocation();
     }
 
-    public function addItem(): void
+    public function updatedLocationId(): void
     {
-        $this->items[] = ['product_id' => null, 'counted_quantity' => null];
+        $this->loadItemsForLocation();
     }
 
-    public function removeItem(int $index): void
+    public function loadItemsForLocation(): void
     {
-        unset($this->items[$index]);
-        $this->items = array_values($this->items);
+        if (!$this->location_id) {
+            $this->items = [];
+
+            return;
+        }
+
+        LocationAccess::ensureLocationAllowed((int) $this->location_id);
+
+        $balances = StockBalance::query()
+            ->with('product')
+            ->where('location_id', $this->location_id)
+            ->orderByDesc('quantity')
+            ->get()
+            ->sortBy(fn (StockBalance $balance) => $balance->product?->name ?? '')
+            ->values();
+
+        $this->items = $balances->map(function (StockBalance $balance) {
+            return [
+                'product_id' => $balance->product_id,
+                'product_name' => $balance->product?->name ?? 'Article',
+                'product_sku' => $balance->product?->sku ?? null,
+                'system_quantity' => (float) $balance->quantity,
+                'counted_quantity' => null,
+            ];
+        })->all();
     }
 
     public function save(StockService $stockService): void
@@ -51,6 +73,7 @@ class Create extends Component
             'counted_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
             'items.*.product_id' => ['nullable', 'exists:products,id'],
+            'items.*.system_quantity' => ['nullable', 'numeric', 'min:0'],
             'items.*.counted_quantity' => ['nullable', 'numeric', 'min:0'],
         ]);
 
@@ -65,6 +88,7 @@ class Create extends Component
                 'location_id' => $data['location_id'],
                 'counted_at' => $data['counted_at'] ?? null,
                 'notes' => $data['notes'] ?? null,
+                'created_by' => auth()->id(),
             ]);
 
             foreach ($filteredItems as $item) {
@@ -73,7 +97,7 @@ class Create extends Component
                     ->where('location_id', $inventory->location_id)
                     ->first();
 
-                $systemQty = (float) ($balance?->quantity ?? 0);
+                $systemQty = (float) ($item['system_quantity'] ?? $balance?->quantity ?? 0);
                 $countedQty = (float) $item['counted_quantity'];
                 $diff = $countedQty - $systemQty;
                 $unitCost = (float) ($balance?->avg_cost_local ?? $product->avg_cost_local);
@@ -112,10 +136,40 @@ class Create extends Component
     public function render()
     {
         $locations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
-        $products = Product::orderBy('name')->get();
         $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
+        $visibleItems = $this->visibleItems();
+        $countedItems = collect($this->items)->filter(fn (array $item) => $item['counted_quantity'] !== null && $item['counted_quantity'] !== '')->count();
+        $differencesCount = collect($this->items)->filter(function (array $item) {
+            if ($item['counted_quantity'] === null || $item['counted_quantity'] === '') {
+                return false;
+            }
 
-        return view('livewire.inventory-counts.create', compact('locations', 'products', 'canSelectAnyLocation'))
+            return (float) $item['counted_quantity'] !== (float) ($item['system_quantity'] ?? 0);
+        })->count();
+
+        return view('livewire.inventory-counts.create', compact('locations', 'canSelectAnyLocation', 'visibleItems', 'countedItems', 'differencesCount'))
             ->layout('layouts.app');
+    }
+
+    private function visibleItems(): Collection
+    {
+        $query = mb_strtolower(trim($this->search));
+
+        return collect($this->items)
+            ->filter(function (array $item) use ($query) {
+                if ($this->showOnlyCounted && ($item['counted_quantity'] === null || $item['counted_quantity'] === '')) {
+                    return false;
+                }
+
+                if ($query === '') {
+                    return true;
+                }
+
+                $haystack = mb_strtolower(
+                    trim(($item['product_name'] ?? '') . ' ' . ($item['product_sku'] ?? ''))
+                );
+
+                return str_contains($haystack, $query);
+            });
     }
 }
