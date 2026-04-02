@@ -2,7 +2,9 @@
 
 ## 1. Présentation
 
-Smart Hardware ERP est une application de gestion pour:
+Smart Hardware ERP est une application de gestion conçue pour suivre les opérations quotidiennes d'une quincaillerie ou d'un commerce similaire.
+
+Elle sert principalement à gérer:
 
 - les produits
 - le stock par dépôt ou magasin
@@ -13,58 +15,98 @@ Smart Hardware ERP est une application de gestion pour:
 - les dépenses
 - les rapports
 
-L'application fonctionne avec des rôles utilisateurs et un accès contrôlé selon les responsabilités.
+Ce qu'il faut retenir:
+
+- le système fonctionne avec des rôles utilisateurs
+- certaines actions dépendent du rôle et de l'emplacement autorisé
+- chaque opération importante laisse une trace dans le système
 
 ## 2. Connexion
 
-Accédez à l'application avec votre compte utilisateur.
+### À quoi ça sert
 
-Compte de démonstration principal:
+La connexion permet d'accéder au système avec des droits adaptés à votre rôle.
+
+### Compte de démonstration principal
 
 - Email: `admin@local.test`
 - Mot de passe: `Admin@12345`
 
-Important:
+### Important
 
 - l'inscription publique est désactivée
 - les nouveaux utilisateurs doivent être créés depuis le module `Utilisateurs`
 - certains écrans demandent un code secret pour confirmer une suppression
 
+### Conseil
+
+- utilisez un compte personnel pour chaque utilisateur
+- évitez de partager le même mot de passe entre plusieurs personnes
+
 ## 3. Rôles utilisateurs
 
-Les rôles disponibles sont:
+### Les rôles disponibles
 
-- `owner`: accès complet
-- `manager`: gestion opérationnelle avancée
-- `seller`: accès orienté ventes et opérations autorisées
+- `owner`
+  Explication: accès complet à l'application et aux réglages sensibles.
+- `manager`
+  Explication: gestion opérationnelle avancée, rapports, utilisateurs et configuration autorisée.
+- `seller`
+  Explication: accès orienté ventes et opérations courantes autorisées.
 
-Selon le rôle, certaines pages ou actions peuvent être masquées ou bloquées.
+### À savoir
+
+- un utilisateur peut voir moins d'écrans qu'un autre
+- certaines actions sont bloquées si le rôle est insuffisant
+- certains comptes sont limités à un emplacement de stock
 
 ## 4. Navigation générale
 
-Après connexion, vous pouvez accéder aux principaux modules:
+### Modules principaux
 
-- Tableau de bord
-- Produits
-- Fournisseurs
-- Clients
-- Achats
-- Ventes
-- Mouvements de stock
-- Transferts
-- Inventaires
-- Dépenses
-- Rapports
-- Utilisateurs
-- Paramètres société
-- Sauvegardes
-- Corbeille
+- `Tableau de bord`
+  Explication: vue générale des indicateurs, alertes et dernières activités.
+- `Produits`
+  Explication: gestion des articles, quantités et fiche stock.
+- `Fournisseurs`
+  Explication: partenaires utilisés dans les achats.
+- `Clients`
+  Explication: partenaires utilisés dans les ventes.
+- `Achats`
+  Explication: entrée de stock et suivi des commandes d'achat.
+- `Ventes`
+  Explication: sortie de stock et enregistrement des ventes.
+- `Mouvements`
+  Explication: journal complet des entrées, sorties et ajustements.
+- `Transferts`
+  Explication: déplacement de stock entre emplacements.
+- `Inventaires`
+  Explication: comparaison entre stock système et stock réel.
+- `Dépenses`
+  Explication: enregistrement des charges de l'entreprise.
+- `Rapports`
+  Explication: suivi des ventes, coûts, marges et valeurs de stock.
+- `Utilisateurs`
+  Explication: création et gestion des comptes.
+- `Paramètres société`
+  Explication: réglages généraux de l'entreprise.
+- `Sauvegardes`
+  Explication: récupération d'instantanés ou exports selon la configuration.
+- `Corbeille`
+  Explication: restauration des éléments supprimés en soft delete.
 
-Le tableau de bord affiche les indicateurs clés, les alertes de stock et les dernières activités.
+### Conseil
+
+- commencez toujours par identifier le bon module avant de saisir une opération
+- si vous hésitez, utilisez le centre d'aide pour trouver la bonne page
 
 ## 5. Gestion des produits
 
-Dans le module `Produits`, vous pouvez:
+### À quoi ça sert
+
+Le module `Produits` permet de créer et maintenir le catalogue des articles vendus ou stockés.
+
+### Ce que vous pouvez faire
 
 - créer un article
 - modifier un article
@@ -72,16 +114,24 @@ Dans le module `Produits`, vous pouvez:
 - consulter la fiche stock
 - importer des produits par fichier CSV ou Excel
 
-Informations principales d'un produit:
+### Informations principales d'un produit
 
-- nom
-- SKU
-- code-barres
-- unité
-- coût moyen
-- prix de vente
-- marge
-- seuil de réapprovisionnement
+- `nom`
+  Explication: nom affiché dans les achats, ventes et rapports.
+- `SKU`
+  Explication: référence interne unique de l'article.
+- `code-barres`
+  Explication: utile pour la lecture rapide ou l'identification.
+- `unité`
+  Explication: pcs, kg, litre, mètre, etc.
+- `coût moyen`
+  Explication: coût utilisé pour le suivi du stock.
+- `prix de vente`
+  Explication: prix proposé au client.
+- `marge`
+  Explication: indicateur commercial.
+- `seuil de réapprovisionnement`
+  Explication: niveau à partir duquel le produit devient critique.
 
 ### Import produits
 
@@ -98,88 +148,151 @@ Colonnes supportées:
 - `margin`
 - `reorder_level`
 
-Si `stock` est renseigné, la quantité est ajoutée dans l'entité de stock choisie pendant l'import.
+### À retenir
+
+- si `unit_code` est absent, l'unité par défaut peut être utilisée
+- si `stock` est renseigné, la quantité est ajoutée dans l'entité choisie
+- vérifiez toujours les références avant un import massif
 
 ## 6. Fiche stock produit
 
-La fiche stock permet de voir:
+### À quoi ça sert
 
-- le stock total
-- le seuil de réapprovisionnement
-- la valeur du stock
-- le stock par emplacement
-- l'historique des mouvements
+La fiche stock donne une vue complète sur la situation d'un article.
 
-Les quantités sont affichées de manière simple. Exemple:
+### Ce que vous y voyez
 
-- `3` au lieu de `3.000`
-- `2.5` si la quantité contient une décimale utile
+- `stock total`
+  Explication: quantité totale disponible sur les emplacements visibles.
+- `seuil de réapprovisionnement`
+  Explication: quantité minimale attendue.
+- `valeur du stock`
+  Explication: estimation basée sur les quantités et le coût.
+- `stock par emplacement`
+  Explication: détail dépôt par dépôt ou magasin par magasin.
+- `historique des mouvements`
+  Explication: entrées, sorties, ajustements et variations successives.
+
+### Présentation des quantités
+
+- `3`
+  Explication: affichage simple pour une quantité entière.
+- `2.5`
+  Explication: affichage décimal seulement si nécessaire.
+
+### Utilité pratique
+
+- comprendre où se trouve le stock
+- expliquer une rupture
+- vérifier l'effet d'un achat ou d'une vente
 
 ## 7. Fournisseurs et clients
 
-Les modules `Fournisseurs` et `Clients` servent à:
+### Fournisseurs
 
-- enregistrer les partenaires
-- modifier leurs informations
-- centraliser les données utilisées dans les achats et ventes
+Le module `Fournisseurs` sert à:
 
-Avant de saisir des achats ou ventes réels, il est conseillé de préparer vos fournisseurs et clients.
+- enregistrer les partenaires d'achat
+- conserver leurs coordonnées
+- les réutiliser dans les commandes d'achat
+
+### Clients
+
+Le module `Clients` sert à:
+
+- enregistrer les acheteurs récurrents
+- suivre les informations utiles à la vente
+- retrouver rapidement un client dans l'historique
+
+### Conseil
+
+- créez vos fournisseurs et clients avant les opérations réelles
+- utilisez des fiches claires pour éviter les doublons
 
 ## 8. Achats
 
-Le module `Achats` permet:
+### À quoi ça sert
 
-- de créer une commande d'achat
-- de modifier une commande
-- de visualiser les lignes commandées
-- de suivre les quantités reçues
-- d'imprimer le bon de commande
+Le module `Achats` permet de faire entrer du stock dans le système.
 
-Pendant la réception, le stock peut être injecté dans un emplacement choisi.
+### Ce que vous pouvez faire
 
-Bonnes pratiques:
+- créer une commande d'achat
+- modifier une commande
+- visualiser les lignes commandées
+- suivre les quantités reçues
+- imprimer le bon de commande
 
-- vérifiez le fournisseur avant validation
-- contrôlez les quantités reçues
-- confirmez le dépôt ou magasin de réception
+### Ce qu'il faut vérifier
+
+- le bon fournisseur
+- les bonnes quantités
+- le bon emplacement de réception
+- le bon prix d'achat
+
+### Pourquoi c'est important
+
+- un achat bien saisi alimente correctement le stock
+- une erreur d'achat fausse la quantité et la valeur du stock
 
 ## 9. Ventes
 
-Le module `Ventes` permet:
+### À quoi ça sert
 
-- d'ajouter des articles à vendre
-- de choisir le magasin ou dépôt de sortie
-- de vérifier le stock disponible
-- d'enregistrer la vente
-- d'imprimer le document associé
-- de traiter des ajustements après vente selon les options disponibles
+Le module `Ventes` permet d'enregistrer les sorties de stock liées aux ventes.
 
-Avant validation:
+### Ce que vous pouvez faire
+
+- ajouter des articles à vendre
+- choisir le magasin ou dépôt de sortie
+- vérifier le stock disponible
+- enregistrer la vente
+- imprimer le document associé
+- traiter certains ajustements après vente si l'option existe
+
+### Avant validation
 
 - vérifiez la disponibilité réelle du stock
 - contrôlez les quantités saisies
 - confirmez les montants et remises
+- choisissez le bon emplacement de sortie
+
+### Résultat attendu
+
+- le stock diminue correctement
+- la vente apparaît dans les rapports
+- le mouvement devient traçable
 
 ## 10. Mouvements de stock
 
-Le journal des mouvements centralise les opérations de stock:
+### À quoi ça sert
 
-- entrées
-- sorties
-- ajustements
-- transferts
+Le journal des mouvements sert à comprendre ce qui a modifié le stock.
 
-Ce module est utile pour:
+### Types de mouvements visibles
 
-- retracer une variation
-- contrôler une anomalie
-- auditer l'historique d'un article
+- `entrées`
+  Explication: ajout de stock, souvent après un achat ou un ajustement positif.
+- `sorties`
+  Explication: diminution de stock, souvent après une vente ou un ajustement négatif.
+- `ajustements`
+  Explication: correction manuelle ou régularisation.
+- `transferts`
+  Explication: déplacement entre deux emplacements.
+
+### Quand utiliser ce module
+
+- quand une quantité semble incohérente
+- quand vous voulez vérifier une variation
+- quand vous devez auditer l'historique d'un article
 
 ## 11. Transferts de stock
 
-Le module `Transferts` permet de déplacer des articles d'un emplacement vers un autre.
+### À quoi ça sert
 
-Étapes générales:
+Le module `Transferts` permet de déplacer du stock d'un emplacement vers un autre.
+
+### Étapes générales
 
 1. choisir l'emplacement source
 2. choisir l'emplacement de destination
@@ -187,100 +300,161 @@ Le module `Transferts` permet de déplacer des articles d'un emplacement vers un
 4. saisir les quantités
 5. confirmer le transfert
 
-L'application vérifie le stock disponible avant validation.
+### Ce qu'il faut vérifier
+
+- le stock disponible à la source
+- la bonne destination
+- les bonnes quantités
+
+### Effet attendu
+
+- le stock baisse dans l'emplacement source
+- le stock augmente dans l'emplacement de destination
 
 ## 12. Inventaires
 
-Le module `Inventaires` sert à comparer le stock système et le stock compté.
+### À quoi ça sert
 
-Vous pouvez:
+Le module `Inventaires` compare le stock système et le stock réellement compté.
+
+### Ce que vous pouvez faire
 
 - créer un inventaire manuel
 - importer un inventaire par fichier
 - analyser les écarts
 - régulariser les différences
 
-Ce module aide à détecter:
+### Ce que le module aide à détecter
 
 - les manquants
 - les surplus
-- les erreurs de saisie ou de mouvement
+- les erreurs de saisie
+- les oublis de mouvement
+
+### Bon moment pour faire un inventaire
+
+- à la fin d'une période
+- après un écart constaté
+- avant une clôture interne
 
 ## 13. Dépenses
 
-Le module `Dépenses` permet d'enregistrer les charges de l'entreprise.
+### À quoi ça sert
 
-Exemples:
+Le module `Dépenses` enregistre les charges de fonctionnement de l'entreprise.
+
+### Exemples de dépenses
 
 - transport
 - loyer
 - maintenance
 - fournitures
 
-Ces données alimentent le suivi financier et les rapports.
+### Utilité
+
+- améliorer le suivi financier
+- mesurer le coût réel d'exploitation
+- alimenter les rapports
 
 ## 14. Rapports
 
-Deux grands types de rapports sont disponibles:
+### Types de rapports disponibles
 
-- rapport financier
-- rapport des ventes
+- `rapport financier`
+  Explication: vision globale des montants, coûts, stock et résultats.
+- `rapport des ventes`
+  Explication: détail des quantités vendues, montants et lignes commerciales.
 
-Ils permettent de suivre notamment:
+### Ce que vous pouvez suivre
 
 - les quantités vendues
 - les montants de ventes
 - la valeur du stock
 - les marges et coûts
 
+### Utilité pratique
+
+- piloter l'activité
+- repérer les produits performants
+- identifier des écarts ou des baisses
+
 ## 15. Utilisateurs et sécurité
 
-Le module `Utilisateurs` permet aux profils autorisés de:
+### Ce que permet le module `Utilisateurs`
 
 - créer un utilisateur
 - attribuer un rôle
-- affecter un emplacement de stock si nécessaire
+- affecter un emplacement si nécessaire
 - modifier un compte existant
 
-Rappels de sécurité:
+### Bonnes pratiques de sécurité
 
 - ne partagez pas les mots de passe
 - changez les accès des comptes inutilisés
 - limitez les droits selon le rôle réel de l'utilisateur
-- utilisez le code secret de suppression avec précaution
+- utilisez le code secret de suppression avec prudence
+
+### Important
+
+- tous les utilisateurs ne doivent pas avoir un accès global
+- plus les droits sont élevés, plus les actions sont sensibles
 
 ## 16. Paramètres société
 
-Le module `Paramètres société` permet de configurer:
+### À quoi ça sert
+
+Le module `Paramètres société` centralise les réglages généraux.
+
+### Ce que vous pouvez configurer
 
 - les informations de l'entreprise
 - certains réglages de présentation
 - les seuils globaux de stock bas
 - les éléments visibles sur les documents
 
-Il est conseillé de compléter ces informations avant l'utilisation quotidienne.
+### Conseil
+
+- complétez cette page avant l'utilisation quotidienne
+- gardez les informations toujours à jour
 
 ## 17. Sauvegardes et santé système
 
-Le module `Sauvegardes` permet de récupérer des instantanés de données selon la configuration en place.
+### Sauvegardes
 
-Le module `Santé système` aide à contrôler:
+Le module `Sauvegardes` permet de récupérer des instantanés de données selon la configuration active.
+
+### Santé système
+
+Le module `Santé système` aide à vérifier:
 
 - l'état général de l'application
 - certains services ou dépendances
 - le stockage et la configuration
 
+### Pourquoi c'est utile
+
+- prévenir les pannes ou incohérences
+- contrôler rapidement l'état technique du système
+
 ## 18. Corbeille
 
-La corbeille permet de retrouver certains éléments supprimés en soft delete.
+### À quoi ça sert
 
-Elle sert à:
+La corbeille permet de retrouver certains éléments supprimés sans perte immédiate.
+
+### Ce que vous pouvez faire
 
 - restaurer un enregistrement supprimé
 - contrôler les suppressions récentes
 - éviter des pertes accidentelles
 
+### Bon usage
+
+- vérifiez toujours la corbeille avant de recréer une fiche supprimée
+
 ## 19. Bonnes pratiques d'utilisation
+
+### Ordre conseillé
 
 - créez d'abord les unités, emplacements, fournisseurs et clients
 - ajoutez les produits avant les opérations de stock
@@ -289,6 +463,13 @@ Elle sert à:
 - contrôlez régulièrement les alertes de stock bas
 - réalisez des inventaires périodiques
 - consultez les rapports pour suivre la performance
+
+### Erreurs à éviter
+
+- vendre depuis le mauvais emplacement
+- importer des produits sans vérifier les colonnes
+- ignorer les alertes de stock bas
+- modifier des données sans vérifier l'impact stock
 
 ## 20. Résolution rapide des problèmes
 
@@ -303,24 +484,33 @@ Causes possibles:
 
 ### Quantité insuffisante
 
-Vérifiez:
+À vérifier:
 
 - l'emplacement sélectionné
 - la quantité réellement disponible
-- les transferts ou ventes déjà enregistrés
+- les transferts déjà effectués
+- les ventes déjà enregistrées
 
 ### Utilisateur introuvable pour l'inscription
 
-L'inscription publique est fermée. Il faut demander à un `owner` ou `manager` autorisé de créer le compte depuis le module `Utilisateurs`.
+Explication:
+
+- l'inscription publique est fermée
+- un `owner` ou `manager` autorisé doit créer le compte depuis `Utilisateurs`
 
 ## 21. Conclusion
 
-Pour bien démarrer:
+### Pour bien démarrer
 
 1. connectez-vous
 2. configurez l'entreprise
-3. créez les emplacements et unités si besoin
+3. créez les unités et emplacements si besoin
 4. ajoutez les produits
 5. enregistrez les achats
-6. effectuez les ventes et suivis de stock
-7. contrôlez les rapports et inventaires régulièrement
+6. effectuez les ventes
+7. surveillez les rapports et inventaires
+
+### Idée simple à retenir
+
+- si le stock est faux, vérifiez les achats, ventes, transferts et inventaires
+- si l'accès est bloqué, vérifiez le rôle et l'emplacement autorisé
