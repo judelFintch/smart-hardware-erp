@@ -20,15 +20,37 @@
         <div class="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
             <div>
                 <div class="text-sm font-medium text-slate-900">{{ $counts->total() }} inventaire(s) enregistré(s)</div>
-                <div class="mt-1 text-sm text-slate-500">Importe un CSV pour régulariser rapidement le stock d'un dépôt.</div>
+                <div class="mt-1 text-sm text-slate-500">Exporte un modèle prérempli avec les articles du lieu, complète la quantité comptée dans Excel, puis réimporte le fichier.</div>
             </div>
-            <div class="flex flex-wrap items-center gap-2">
-                <form wire:submit.prevent="importCsv" class="flex flex-wrap items-center gap-2">
+            <div class="grid gap-3 lg:grid-cols-2">
+                <form wire:submit.prevent="downloadTemplate" class="flex flex-wrap items-center gap-2">
+                    <select wire:model="template_location_id" class="input bg-white" @disabled(!$canSelectAnyLocation)>
+                        <option value="">Lieu du modèle</option>
+                        @foreach ($locations as $location)
+                            <option value="{{ $location->id }}">{{ $location->name }}</option>
+                        @endforeach
+                    </select>
+                    <input type="date" wire:model="template_counted_at" class="input bg-white">
+                    <button class="btn btn-secondary" type="submit">Modèle Excel</button>
+                </form>
+                <form wire:submit.prevent="importInventorySheet" class="flex flex-wrap items-center gap-2">
+                    <select wire:model="import_location_id" class="input bg-white" @disabled(!$canSelectAnyLocation)>
+                        <option value="">Lieu d'import</option>
+                        @foreach ($locations as $location)
+                            <option value="{{ $location->id }}">{{ $location->name }}</option>
+                        @endforeach
+                    </select>
                     <input type="file" wire:model="importFile" class="input bg-white" />
-                    <button class="btn btn-secondary" type="submit">Importer CSV</button>
+                    <button class="btn btn-secondary" type="submit">Importer Excel/CSV</button>
                 </form>
                 @error('importFile') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+                @error('template_location_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
+                @error('import_location_id') <span class="text-red-600 text-xs">{{ $message }}</span> @enderror
             </div>
+        </div>
+        <div class="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
+            Colonnes attendues dans le modèle: <span class="font-medium text-slate-900">sku, name, location_code, location_name, system_quantity, counted_quantity, counted_at, unit_cost_local, unit_sale_price_local</span>.
+            Remplis surtout <span class="font-medium text-slate-900">counted_quantity</span>, puis réimporte le fichier.
         </div>
     </div>
 

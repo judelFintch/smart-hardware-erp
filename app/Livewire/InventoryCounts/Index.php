@@ -3,6 +3,7 @@
 namespace App\Livewire\InventoryCounts;
 
 use App\Exports\InventoryExport;
+use App\Exports\InventoryTemplateExport;
 use App\Models\CompanySetting;
 use App\Models\InventoryCount;
 use App\Models\InventoryCountItem;
@@ -15,6 +16,7 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class Index extends Component
 {
@@ -23,61 +25,121 @@ class Index extends Component
 
     public int $perPage = 15;
     public $importFile;
+    public ?int $template_location_id = null;
+    public ?int $import_location_id = null;
+    public ?string $template_counted_at = null;
 
     public function export()
     {
         return Excel::download(new InventoryExport(LocationAccess::assignedLocationId()), 'inventaires.xlsx');
     }
 
-    public function importCsv(StockService $stockService): void
+    public function mount(): void
+    {
+        $defaultLocationId = LocationAccess::assignedLocationId()
+            ?? StockLocation::where('code', 'depot')->first()?->id;
+
+        $this->template_location_id = $defaultLocationId;
+        $this->import_location_id = $defaultLocationId;
+        $this->template_counted_at = now()->toDateString();
+    }
+
+    public function downloadTemplate()
     {
         $this->validate([
-            'importFile' => ['required', 'file', 'mimes:csv,txt', 'max:5120'],
+            'template_location_id' => ['required', 'exists:stock_locations,id'],
+            'template_counted_at' => ['nullable', 'date'],
         ]);
-        $path = $this->importFile->getRealPath();
-        $handle = fopen($path, 'r');
-        if (!$handle) {
-            $this->addError('importFile', 'Impossible de lire le fichier.');
+
+        LocationAccess::ensureLocationAllowed((int) $this->template_location_id);
+
+        $location = StockLocation::findOrFail($this->template_location_id);
+        $date = $this->template_counted_at ?: now()->toDateString();
+
+        return Excel::download(
+            new InventoryTemplateExport($this->template_location_id, $date),
+            sprintf('modele-inventaire-%s-%s.xlsx', $location->code ?: $location->id, $date)
+        );
+    }
+
+    public function importInventorySheet(StockService $stockService): void
+    {
+        $this->validate([
+            'importFile' => ['required', 'file', 'mimes:csv,txt,xls,xlsx', 'max:10240'],
+            'import_location_id' => ['required', 'exists:stock_locations,id'],
+        ]);
+
+        LocationAccess::ensureLocationAllowed((int) $this->import_location_id);
+
+        $rows = $this->extractImportRows();
+        if (empty($rows)) {
+            $this->addError('importFile', 'Impossible de lire le fichier ou fichier vide.');
             return;
         }
 
-        $header = fgetcsv($handle);
-        if (!$header) {
-            fclose($handle);
-            $this->addError('importFile', 'Fichier CSV vide.');
-            return;
-        }
+        $header = array_shift($rows);
+        $columns = array_map(fn ($value) => strtolower(trim((string) $value)), $header);
 
-        $columns = array_map('strtolower', $header);
-        $locationId = LocationAccess::assignedLocationId() ?? StockLocation::where('code', 'depot')->first()?->id;
+        $locationId = (int) $this->import_location_id;
         if (!$locationId) {
-            fclose($handle);
-            $this->addError('importFile', 'Aucun dépôt trouvé pour importer l’inventaire.');
+            $this->addError('import_location_id', 'Choisissez un emplacement pour l’import.');
             return;
         }
 
-        $inventory = InventoryCount::create([
-            'location_id' => $locationId,
-            'counted_at' => now(),
-            'notes' => 'Import CSV',
-        ]);
+        $preparedRows = [];
+        $countedAt = now();
 
-        while (($row = fgetcsv($handle)) !== false) {
-            $data = array_combine($columns, $row);
-            if (!$data || empty($data['sku']) || !isset($data['quantity'])) {
+        foreach ($rows as $row) {
+            $normalizedRow = array_slice(array_pad($row, count($columns), null), 0, count($columns));
+            $data = array_combine($columns, $normalizedRow);
+            if (!$data || empty(trim((string) ($data['sku'] ?? ''))) || !isset($data['counted_quantity']) || $data['counted_quantity'] === '') {
                 continue;
             }
-            $product = Product::where('sku', trim($data['sku']))->first();
+
+            $product = Product::where('sku', trim((string) $data['sku']))->first();
             if (!$product) {
                 continue;
             }
 
-            $countedQty = (float) $data['quantity'];
+            $preparedRows[] = [
+                'product' => $product,
+                'counted_quantity' => (float) $data['counted_quantity'],
+                'counted_at' => !empty($data['counted_at']) ? $data['counted_at'] : null,
+                'unit_cost_local' => $data['unit_cost_local'] ?? null,
+                'unit_sale_price_local' => $data['unit_sale_price_local'] ?? null,
+                'system_quantity' => $data['system_quantity'] ?? null,
+            ];
+        }
+
+        if (count($preparedRows) === 0) {
+            $this->addError('importFile', 'Aucune ligne exploitable trouvée. Vérifiez les colonnes sku et counted_quantity.');
+            return;
+        }
+
+        foreach ($preparedRows as $row) {
+            if (!empty($row['counted_at'])) {
+                $countedAt = $row['counted_at'];
+                break;
+            }
+        }
+
+        $inventory = InventoryCount::create([
+            'location_id' => $locationId,
+            'counted_at' => $countedAt,
+            'notes' => 'Import inventaire Excel/CSV',
+            'created_by' => auth()->id(),
+        ]);
+
+        foreach ($preparedRows as $row) {
+            $product = $row['product'];
+            $countedQty = $row['counted_quantity'];
             $balance = $product->stockBalances()->where('location_id', $locationId)->first();
-            $systemQty = (float) ($balance?->quantity ?? 0);
+            $systemQty = isset($row['system_quantity']) && $row['system_quantity'] !== ''
+                ? (float) $row['system_quantity']
+                : (float) ($balance?->quantity ?? 0);
             $diff = $countedQty - $systemQty;
-            $unitCost = (float) ($data['unit_cost_local'] ?? $balance?->avg_cost_local ?? $product->avg_cost_local);
-            $unitSale = (float) ($data['unit_sale_price_local'] ?? $product->sale_price_local);
+            $unitCost = (float) ($row['unit_cost_local'] ?? $balance?->avg_cost_local ?? $product->avg_cost_local);
+            $unitSale = (float) ($row['unit_sale_price_local'] ?? $product->sale_price_local);
 
             InventoryCountItem::create([
                 'inventory_count_id' => $inventory->id,
@@ -105,7 +167,6 @@ class Index extends Component
             }
         }
 
-        fclose($handle);
         $this->reset('importFile');
     }
 
@@ -123,6 +184,8 @@ class Index extends Component
 
     public function render()
     {
+        $locations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
+        $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
         $latestCount = LocationAccess::filterInventoryCounts(InventoryCount::with('items'))
             ->orderByDesc('id')
             ->first();
@@ -160,7 +223,33 @@ class Index extends Component
             ->orderByDesc('id')
             ->paginate($this->perPage);
 
-        return view('livewire.inventory-counts.index', compact('counts', 'summary'))
+        return view('livewire.inventory-counts.index', compact('counts', 'summary', 'locations', 'canSelectAnyLocation'))
             ->layout('layouts.app');
+    }
+
+    protected function extractImportRows(): array
+    {
+        $path = $this->importFile->getRealPath();
+        $extension = strtolower($this->importFile->getClientOriginalExtension());
+
+        if (in_array($extension, ['xls', 'xlsx'], true)) {
+            $spreadsheet = IOFactory::load($path);
+
+            return $spreadsheet->getActiveSheet()->toArray(null, true, true, false);
+        }
+
+        $handle = fopen($path, 'r');
+        if (!$handle) {
+            return [];
+        }
+
+        $rows = [];
+        while (($row = fgetcsv($handle)) !== false) {
+            $rows[] = $row;
+        }
+
+        fclose($handle);
+
+        return $rows;
     }
 }
