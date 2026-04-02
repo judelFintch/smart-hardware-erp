@@ -1,19 +1,24 @@
 <div id="top" class="space-y-6">
-    <div class="rounded-[28px] border border-slate-200 bg-gradient-to-br from-white via-amber-50 to-cyan-50 p-6 shadow-sm">
+    <div class="overflow-hidden rounded-[32px] border border-slate-200 bg-[radial-gradient(circle_at_top_left,_rgba(251,191,36,0.18),_transparent_28%),radial-gradient(circle_at_top_right,_rgba(34,211,238,0.16),_transparent_24%),linear-gradient(135deg,_#ffffff_0%,_#fff9ed_45%,_#f7fcff_100%)] p-6 shadow-sm">
         <div class="flex flex-col gap-6">
             <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div class="max-w-3xl">
-                    <div class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
+                    <div class="inline-flex items-center rounded-full border border-amber-200 bg-white/80 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-700 shadow-sm backdrop-blur">
                         Centre d'aide
                     </div>
-                    <h1 class="mt-3 text-2xl font-semibold text-slate-900">Trouvez vite ce que vous voulez faire</h1>
-                    <p class="mt-2 text-sm text-slate-600">
-                        Recherchez une tâche, ouvrez une action rapide ou lisez une explication simple avant d'aller dans le détail.
+                    <h1 class="mt-4 max-w-2xl text-3xl font-semibold leading-tight tracking-[-0.02em] text-slate-900 md:text-4xl">
+                        Trouvez vite ce que vous cherchez, sans lire tout le manuel
+                    </h1>
+                    <p class="mt-3 max-w-2xl text-base leading-7 text-slate-600">
+                        Le centre d’aide vous guide selon vos besoins réels: comprendre une fonctionnalité, résoudre un blocage, ou ouvrir directement la bonne page pour agir.
                     </p>
                 </div>
-                <div class="rounded-2xl border border-white/70 bg-white/80 p-4 text-sm text-slate-600 shadow-sm">
-                    <div class="font-semibold text-slate-900">Point de départ conseillé</div>
-                    <div class="mt-1">Entreprise, unités, emplacements, produits, achats, puis ventes. Cet ordre évite la plupart des erreurs de départ.</div>
+                <div class="max-w-sm rounded-[28px] border border-white/80 bg-white/85 p-5 text-sm text-slate-600 shadow-sm backdrop-blur">
+                    <div class="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Démarrage recommandé</div>
+                    <div class="mt-3 text-base font-semibold leading-6 text-slate-900">Suivez le bon ordre pour éviter les erreurs de configuration.</div>
+                    <div class="mt-3 rounded-2xl bg-slate-50 px-4 py-3 leading-6 text-slate-600">
+                        Entreprise, unités, emplacements, produits, achats, puis ventes.
+                    </div>
                 </div>
             </div>
 
@@ -23,12 +28,13 @@
                     <input
                         wire:model.live.debounce.250ms="search"
                         type="search"
-                        class="input h-12"
+                        class="input h-14 rounded-2xl border-white/80 bg-white/90 px-5 text-base shadow-sm backdrop-blur placeholder:text-slate-400"
                         placeholder="Exemple: vente, stock, inventaire, utilisateur, achat..."
                     >
                 </label>
-                <div class="rounded-2xl border border-white/80 bg-white/80 px-4 py-3 text-sm text-slate-600 shadow-sm">
-                    <span class="font-semibold text-slate-900">{{ $sections->count() }}</span> section(s) trouvée(s)
+                <div class="flex items-center rounded-2xl border border-white/80 bg-white/85 px-4 py-3 text-sm text-slate-600 shadow-sm backdrop-blur">
+                    <span class="text-2xl font-semibold tracking-[-0.03em] text-slate-900">{{ $sections->count() }}</span>
+                    <span class="ml-2 leading-5">section(s) trouvée(s)</span>
                 </div>
             </div>
         </div>
@@ -36,28 +42,38 @@
 
     <section class="grid gap-4 lg:grid-cols-3">
         @foreach ($smartGuides as $guide)
-            <a href="#{{ $guide['anchor'] }}" class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
-                <div class="text-sm font-semibold text-slate-900">{{ $guide['title'] }}</div>
-                <p class="mt-2 text-sm leading-6 text-slate-600">{{ $guide['description'] }}</p>
-                <div class="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-700">Lire cette aide</div>
+            <a href="#{{ $guide['anchor'] }}" class="group rounded-[28px] border border-slate-200 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md">
+                <div class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">Je veux</div>
+                <div class="mt-4 text-lg font-semibold leading-6 text-slate-900 transition group-hover:text-cyan-800">{{ $guide['title'] }}</div>
+                <p class="mt-3 text-sm leading-7 text-slate-600">{{ $guide['description'] }}</p>
+                <div class="mt-5 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-cyan-700">
+                    <span>Lire cette aide</span>
+                    <span aria-hidden="true">→</span>
+                </div>
             </a>
         @endforeach
     </section>
 
     @if ($quickActions->isNotEmpty())
-        <section class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm">
+        <section class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">
             <div class="flex items-center justify-between gap-3">
-                <div class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-amber-700">
+                <div class="inline-flex items-center rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-emerald-700">
                     Actions rapides
                 </div>
-                <div class="text-sm text-slate-500">Accès direct aux tâches les plus fréquentes</div>
+                <div class="text-sm text-slate-500">Allez directement à l’action</div>
             </div>
-            <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 @foreach ($quickActions as $action)
-                    <a href="{{ route($action['route']) }}" wire:navigate class="rounded-[22px] border border-slate-200 bg-slate-50/70 p-4 transition hover:bg-white hover:shadow-sm">
-                        <div class="font-semibold text-slate-900">{{ $action['title'] }}</div>
-                        <p class="mt-2 text-sm leading-6 text-slate-600">{{ $action['description'] }}</p>
-                        <div class="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">Ouvrir</div>
+                    <a href="{{ route($action['route']) }}" wire:navigate class="group rounded-[24px] border border-slate-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#f8fafc_100%)] p-5 transition duration-200 hover:border-emerald-200 hover:shadow-sm">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="font-semibold leading-6 text-slate-900">{{ $action['title'] }}</div>
+                            <div class="rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-700">Direct</div>
+                        </div>
+                        <p class="mt-3 text-sm leading-7 text-slate-600">{{ $action['description'] }}</p>
+                        <div class="mt-5 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-emerald-700">
+                            <span>Ouvrir</span>
+                            <span aria-hidden="true">→</span>
+                        </div>
                     </a>
                 @endforeach
             </div>
@@ -65,49 +81,58 @@
     @endif
 
     <div class="grid gap-6 xl:grid-cols-[280px_1fr]">
-        <aside class="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm xl:sticky xl:top-20 xl:self-start">
-            <div class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Sommaire</div>
-            <nav class="mt-4 space-y-1">
+        <aside class="rounded-[28px] border border-slate-200 bg-white p-4 shadow-sm xl:sticky xl:top-20 xl:self-start">
+            <div class="px-2">
+                <div class="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">Sommaire</div>
+                <div class="mt-2 text-sm leading-6 text-slate-500">Chaque section résume une fonctionnalité et vous dirige vers la bonne action.</div>
+            </div>
+            <nav class="mt-4 space-y-2">
                 @forelse ($sections as $section)
-                    <a href="#{{ $section['anchor'] }}" class="block rounded-xl px-3 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-900">
-                        <div class="font-medium text-slate-900">{{ $section['title'] }}</div>
+                    <a href="#{{ $section['anchor'] }}" class="block rounded-2xl border border-transparent px-3 py-3 text-sm text-slate-600 transition hover:border-slate-200 hover:bg-slate-50 hover:text-slate-900">
+                        <div class="font-semibold leading-6 text-slate-900">{{ $section['title'] }}</div>
                         @if ($section['summary'] !== '')
-                            <div class="mt-1 text-xs leading-5 text-slate-500">{{ $section['summary'] }}</div>
+                            <div class="mt-1.5 text-xs leading-5 text-slate-500">{{ $section['summary'] }}</div>
                         @endif
                     </a>
                 @empty
-                    <div class="rounded-xl bg-slate-50 px-3 py-3 text-sm text-slate-500">
+                    <div class="rounded-2xl bg-slate-50 px-3 py-3 text-sm text-slate-500">
                         Aucun résultat pour cette recherche.
                     </div>
                 @endforelse
             </nav>
         </aside>
 
-        <div class="space-y-5">
+        <div class="space-y-6">
             @forelse ($sections as $section)
-                <section id="{{ $section['anchor'] }}" class="rounded-[24px] border border-slate-200 bg-white p-5 shadow-sm scroll-mt-24">
-                    <div class="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                        <div>
-                            <h2 class="text-lg font-semibold text-slate-900">{{ $section['title'] }}</h2>
+                <section id="{{ $section['anchor'] }}" class="overflow-hidden rounded-[30px] border border-slate-200 bg-white shadow-sm scroll-mt-24">
+                    <div class="border-b border-slate-100 bg-[linear-gradient(180deg,_#ffffff_0%,_#fbfdff_100%)] px-6 py-5">
+                        <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+                            <div class="max-w-3xl">
+                                <div class="inline-flex rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Guide pratique</div>
+                                <h2 class="mt-3 text-2xl font-semibold leading-tight tracking-[-0.02em] text-slate-900">{{ $section['title'] }}</h2>
                             @if ($section['summary'] !== '')
-                                <p class="mt-2 max-w-3xl text-sm leading-6 text-slate-600">{{ $section['summary'] }}</p>
+                                <p class="mt-3 text-base leading-7 text-slate-600">{{ $section['summary'] }}</p>
                             @endif
-                        </div>
-                        <div class="flex gap-2">
-                            @if ($section['route'])
-                                <a href="{{ route($section['route']) }}" wire:navigate class="btn btn-secondary">Ouvrir le module</a>
-                            @endif
-                            <a href="#top" class="btn btn-secondary">Haut</a>
+                            </div>
+                            <div class="flex gap-2">
+                                @if ($section['route'])
+                                    <a href="{{ route($section['route']) }}" wire:navigate class="btn btn-secondary">Ouvrir le module</a>
+                                @endif
+                                <a href="#top" class="btn btn-secondary">Haut</a>
+                            </div>
                         </div>
                     </div>
-                    <div class="prose prose-slate mt-5 max-w-none prose-headings:text-slate-900 prose-p:text-slate-600 prose-li:text-slate-600 prose-strong:text-slate-900">
-                        {!! $section['html'] !!}
+                    <div class="px-6 py-6">
+                        <div class="prose prose-slate prose-lg max-w-none prose-headings:font-semibold prose-headings:text-slate-900 prose-p:leading-8 prose-p:text-slate-600 prose-li:leading-8 prose-li:text-slate-600 prose-strong:text-slate-900 prose-ul:space-y-2 prose-ol:space-y-2">
+                            {!! $section['html'] !!}
+                        </div>
                     </div>
                 </section>
             @empty
-                <div class="rounded-[24px] border border-slate-200 bg-white p-8 text-center shadow-sm">
-                    <div class="text-lg font-semibold text-slate-900">Aucune aide trouvée</div>
-                    <p class="mt-2 text-sm text-slate-600">
+                <div class="rounded-[28px] border border-slate-200 bg-white p-10 text-center shadow-sm">
+                    <div class="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-xl">?</div>
+                    <div class="mt-4 text-xl font-semibold text-slate-900">Aucune aide trouvée</div>
+                    <p class="mx-auto mt-3 max-w-md text-sm leading-7 text-slate-600">
                         Essayez un mot plus simple comme <span class="font-medium">vente</span>, <span class="font-medium">achat</span>, <span class="font-medium">stock</span> ou <span class="font-medium">utilisateur</span>.
                     </p>
                 </div>
