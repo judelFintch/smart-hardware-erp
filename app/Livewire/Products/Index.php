@@ -25,6 +25,8 @@ class Index extends Component
     public ?int $location_id = null;
     public ?int $import_location_id = null;
     public int $perPage = 15;
+    public string $sortField = 'name';
+    public string $sortDirection = 'asc';
 
     public function mount(): void
     {
@@ -44,11 +46,26 @@ class Index extends Component
         $this->resetPage();
     }
 
-    public function formatQuantity(float|int|string|null $quantity): string
+    public function updatingPerPage(): void
     {
-        $value = (float) ($quantity ?? 0);
+        $this->resetPage();
+    }
 
-        return rtrim(rtrim(number_format($value, 3, '.', ''), '0'), '.');
+    public function sortBy(string $field): void
+    {
+        $allowed = ['name', 'sku', 'filtered_stock_quantity', 'avg_cost_local', 'sale_price_local'];
+        if (!in_array($field, $allowed, true)) {
+            return;
+        }
+
+        if ($this->sortField === $field) {
+            $this->sortDirection = $this->sortDirection === 'asc' ? 'desc' : 'asc';
+
+            return;
+        }
+
+        $this->sortField = $field;
+        $this->sortDirection = 'asc';
     }
 
     protected function performDelete(int $productId): void
@@ -183,7 +200,8 @@ class Index extends Component
                         ->orWhere('barcode', 'like', $like);
                 });
             })
-            ->orderBy('name')
+            ->orderBy($this->sortField, $this->sortDirection)
+            ->orderBy('id')
             ->paginate($this->perPage);
 
         $stockBalanceQuery = StockBalance::query();

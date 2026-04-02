@@ -99,13 +99,6 @@ class StockCard extends Component
         return "{$label} #{$referenceId}";
     }
 
-    public function formatQuantity(float|int|string|null $quantity): string
-    {
-        $value = (float) ($quantity ?? 0);
-
-        return rtrim(rtrim(number_format($value, 3, '.', ''), '0'), '.');
-    }
-
     private function movementDelta(StockMovement $movement): float
     {
         return match ($movement->type) {
