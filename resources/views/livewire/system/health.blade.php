@@ -64,6 +64,34 @@
             <h2 class="text-lg font-semibold text-slate-900">Mail</h2>
             <div class="mt-4 text-sm text-slate-600">Driver: <span class="font-medium text-slate-900">{{ $data['mail']['driver'] }}</span></div>
             <div class="mt-2 text-sm text-slate-600">Host: <span class="font-medium text-slate-900">{{ $data['mail']['host'] }}</span></div>
+            <div class="mt-2 text-sm text-slate-600">Alertes connexion: <span class="font-medium text-slate-900">{{ $data['mail']['login_alert_enabled'] ? 'Actives' : 'Inactives' }}</span></div>
+            <div class="mt-2 text-sm text-slate-600">Destinataire: <span class="font-medium text-slate-900">{{ $data['mail']['login_alert_recipient'] ?: 'Non configuré' }}</span></div>
+            <div class="mt-4">
+                @php
+                    $mailStatusTone = match ($data['mail']['login_alert_last_status']) {
+                        'success' => 'bg-emerald-100 text-emerald-700',
+                        'failed' => 'bg-red-100 text-red-700',
+                        default => 'bg-slate-100 text-slate-700',
+                    };
+                    $mailStatusLabel = match ($data['mail']['login_alert_last_status']) {
+                        'success' => 'Dernier envoi réussi',
+                        'failed' => 'Dernier envoi échoué',
+                        default => 'Aucun envoi tracé',
+                    };
+                @endphp
+                <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {{ $mailStatusTone }}">
+                    {{ $mailStatusLabel }}
+                </span>
+            </div>
+            @if ($data['mail']['login_alert_last_attempt_at'])
+                <div class="mt-2 text-sm text-slate-600">Dernière tentative: <span class="font-medium text-slate-900">{{ $data['mail']['login_alert_last_attempt_at'] }}</span></div>
+            @endif
+            @if ($data['mail']['login_alert_last_error'])
+                <div class="mt-3 rounded-2xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    <div class="font-semibold">Cause du dernier échec</div>
+                    <div class="mt-1 break-words">{{ $data['mail']['login_alert_last_error'] }}</div>
+                </div>
+            @endif
         </div>
 
         <div class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm">

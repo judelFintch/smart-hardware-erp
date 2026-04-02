@@ -17,6 +17,9 @@ class CompanySetting extends Model
         'email',
         'login_alert_enabled',
         'login_alert_recipient',
+        'login_alert_last_status',
+        'login_alert_last_error',
+        'login_alert_last_attempt_at',
         'address',
         'currency',
         'currency_symbol',
@@ -34,6 +37,7 @@ class CompanySetting extends Model
     {
         return [
             'login_alert_enabled' => 'boolean',
+            'login_alert_last_attempt_at' => 'datetime',
         ];
     }
 }

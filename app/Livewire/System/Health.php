@@ -2,6 +2,7 @@
 
 namespace App\Livewire\System;
 
+use App\Models\CompanySetting;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
@@ -34,6 +35,7 @@ class Health extends Component
 
         $storageOk = File::isWritable(storage_path());
         $publicOk = File::isWritable(public_path());
+        $companySettings = CompanySetting::query()->first();
         $logsPath = storage_path('logs');
         $latestLogFile = collect(File::exists($logsPath) ? File::files($logsPath) : [])
             ->sortByDesc(fn ($file) => $file->getMTime())
@@ -61,6 +63,11 @@ class Health extends Component
             'mail' => [
                 'driver' => config('mail.default'),
                 'host' => config('mail.mailers.smtp.host'),
+                'login_alert_enabled' => (bool) ($companySettings?->login_alert_enabled ?? false),
+                'login_alert_recipient' => $companySettings?->login_alert_recipient,
+                'login_alert_last_status' => $companySettings?->login_alert_last_status,
+                'login_alert_last_error' => $companySettings?->login_alert_last_error,
+                'login_alert_last_attempt_at' => $companySettings?->login_alert_last_attempt_at?->format('d/m/Y H:i:s'),
             ],
             'logs' => [
                 'writable' => File::isWritable($logsPath),
