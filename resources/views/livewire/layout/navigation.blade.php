@@ -106,6 +106,37 @@ new class extends Component
                     <a class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}" href="{{ route('notifications.index') }}" wire:navigate>
                         Notifications
                     </a>
+                    <div class="sidebar-title">Comptabilité</div>
+                    <a class="nav-link {{ request()->routeIs('accounting.accounts') ? 'active' : '' }}" href="{{ route('accounting.accounts') }}" wire:navigate>
+                        Plan comptable
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('accounting.journals') ? 'active' : '' }}" href="{{ route('accounting.journals') }}" wire:navigate>
+                        Journaux
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('accounting.entries') ? 'active' : '' }}" href="{{ route('accounting.entries') }}" wire:navigate>
+                        Écritures
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('accounting.balance') ? 'active' : '' }}" href="{{ route('accounting.balance') }}" wire:navigate>
+                        Balance
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('accounting.income-statement') ? 'active' : '' }}" href="{{ route('accounting.income-statement') }}" wire:navigate>
+                        Compte de résultat
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('accounting.balance-sheet') ? 'active' : '' }}" href="{{ route('accounting.balance-sheet') }}" wire:navigate>
+                        Bilan simplifié
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('accounting.ledger') ? 'active' : '' }}" href="{{ route('accounting.ledger') }}" wire:navigate>
+                        Grand livre
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('accounting.journal-book') ? 'active' : '' }}" href="{{ route('accounting.journal-book') }}" wire:navigate>
+                        Brouillard journal
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('accounting.operations') ? 'active' : '' }}" href="{{ route('accounting.operations') }}" wire:navigate>
+                        Opérations & comptes
+                    </a>
+                    <a class="nav-link {{ request()->routeIs('accounting.settings') ? 'active' : '' }}" href="{{ route('accounting.settings') }}" wire:navigate>
+                        Paramétrage comptable
+                    </a>
                     <div class="sidebar-title">Système</div>
                     <a class="nav-link {{ request()->routeIs('system.backups') ? 'active' : '' }}" href="{{ route('system.backups') }}" wire:navigate>
                         Sauvegarde
@@ -188,6 +219,17 @@ new class extends Component
                     <a class="nav-link {{ request()->routeIs('reports.sales') ? 'active' : '' }}" href="{{ route('reports.sales') }}" wire:navigate>Rapport ventes</a>
                     <a class="nav-link {{ request()->routeIs('reports.activity') ? 'active' : '' }}" href="{{ route('reports.activity') }}" wire:navigate>Journal d'activité</a>
                     <a class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}" href="{{ route('notifications.index') }}" wire:navigate>Notifications</a>
+                    <div class="sidebar-title">Comptabilité</div>
+                    <a class="nav-link {{ request()->routeIs('accounting.accounts') ? 'active' : '' }}" href="{{ route('accounting.accounts') }}" wire:navigate>Plan comptable</a>
+                    <a class="nav-link {{ request()->routeIs('accounting.journals') ? 'active' : '' }}" href="{{ route('accounting.journals') }}" wire:navigate>Journaux</a>
+                    <a class="nav-link {{ request()->routeIs('accounting.entries') ? 'active' : '' }}" href="{{ route('accounting.entries') }}" wire:navigate>Écritures</a>
+                    <a class="nav-link {{ request()->routeIs('accounting.balance') ? 'active' : '' }}" href="{{ route('accounting.balance') }}" wire:navigate>Balance</a>
+                    <a class="nav-link {{ request()->routeIs('accounting.income-statement') ? 'active' : '' }}" href="{{ route('accounting.income-statement') }}" wire:navigate>Compte de résultat</a>
+                    <a class="nav-link {{ request()->routeIs('accounting.balance-sheet') ? 'active' : '' }}" href="{{ route('accounting.balance-sheet') }}" wire:navigate>Bilan simplifié</a>
+                    <a class="nav-link {{ request()->routeIs('accounting.ledger') ? 'active' : '' }}" href="{{ route('accounting.ledger') }}" wire:navigate>Grand livre</a>
+                    <a class="nav-link {{ request()->routeIs('accounting.journal-book') ? 'active' : '' }}" href="{{ route('accounting.journal-book') }}" wire:navigate>Brouillard journal</a>
+                    <a class="nav-link {{ request()->routeIs('accounting.operations') ? 'active' : '' }}" href="{{ route('accounting.operations') }}" wire:navigate>Opérations & comptes</a>
+                    <a class="nav-link {{ request()->routeIs('accounting.settings') ? 'active' : '' }}" href="{{ route('accounting.settings') }}" wire:navigate>Paramétrage comptable</a>
                     <div class="sidebar-title">Système</div>
                     <a class="nav-link {{ request()->routeIs('system.backups') ? 'active' : '' }}" href="{{ route('system.backups') }}" wire:navigate>Sauvegarde</a>
                     <a class="nav-link {{ request()->routeIs('trash.*') ? 'active' : '' }}" href="{{ route('trash.index') }}" wire:navigate>Corbeille</a>

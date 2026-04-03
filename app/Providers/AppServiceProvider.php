@@ -14,6 +14,7 @@ use App\Models\PurchaseOrder;
 use App\Models\PurchaseOrderItem;
 use App\Models\PurchaseTransfer;
 use App\Models\Sale;
+use App\Models\SalePayment;
 use App\Models\SaleItem;
 use App\Models\StockLocation;
 use App\Models\StockMovement;
@@ -21,6 +22,11 @@ use App\Models\Supplier;
 use App\Models\Unit;
 use App\Models\User;
 use App\Observers\ActivityObserver;
+use App\Observers\ExpenseObserver;
+use App\Observers\InventoryCountObserver;
+use App\Observers\PurchaseOrderObserver;
+use App\Observers\SaleObserver;
+use App\Observers\SalePaymentObserver;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
@@ -74,5 +80,11 @@ class AppServiceProvider extends ServiceProvider
         foreach ($models as $model) {
             $model::observe(ActivityObserver::class);
         }
+
+        Sale::observe(SaleObserver::class);
+        SalePayment::observe(SalePaymentObserver::class);
+        PurchaseOrder::observe(PurchaseOrderObserver::class);
+        Expense::observe(ExpenseObserver::class);
+        InventoryCount::observe(InventoryCountObserver::class);
     }
 }

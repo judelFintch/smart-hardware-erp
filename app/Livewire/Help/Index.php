@@ -48,6 +48,8 @@ class Index extends Component
             ['title' => 'Enregistrer une vente', 'description' => 'Sortir du stock depuis un magasin.', 'route' => 'sales.create'],
             ['title' => 'Faire un transfert', 'description' => 'Déplacer des articles entre deux emplacements.', 'route' => 'stock-transfers.create'],
             ['title' => 'Lancer un inventaire', 'description' => 'Comparer le stock réel avec le stock système.', 'route' => 'inventory-counts.create'],
+            ['title' => 'Voir les opérations comptables', 'description' => 'Comprendre quels comptes sont imputés par opération.', 'route' => 'accounting.operations'],
+            ['title' => 'Paramétrer la comptabilité', 'description' => 'Choisir les comptes et journaux imputés automatiquement.', 'route' => 'accounting.settings'],
         ])->filter(fn (array $item) => $this->canAccessRoute($item['route']))->values();
 
         $smartGuides = collect([
@@ -207,6 +209,7 @@ class Index extends Component
             '12. Inventaires' => 'inventory-counts.index',
             '13. Dépenses' => 'expenses.index',
             '14. Rapports' => 'reports.financial',
+            '14bis. Comptabilité' => 'accounting.settings',
             '15. Utilisateurs et sécurité' => 'users.index',
             '16. Paramètres société' => 'company.settings',
             '17. Sauvegardes et santé système' => 'system.backups',
@@ -227,6 +230,11 @@ class Index extends Component
             'inventory-counts.create',
             'inventory-counts.index',
             'reports.financial',
+            'accounting.accounts',
+            'accounting.journals',
+            'accounting.entries',
+            'accounting.operations',
+            'accounting.settings',
             'users.index',
             'company.settings',
             'system.backups',
