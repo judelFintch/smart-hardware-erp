@@ -4,6 +4,9 @@ namespace App\Livewire\Products;
 
 use App\Exports\ProductImportTemplateExport;
 use App\Livewire\Concerns\ConfirmsDeletionWithSecretCode;
+use App\Models\ActivityLog;
+use App\Models\ImportBatch;
+use App\Models\ImportBatchRow;
 use App\Models\Product;
 use App\Models\StockBalance;
 use App\Models\StockLocation;
@@ -105,6 +108,14 @@ class Index extends Component
             return;
         }
 
+        $batch = ImportBatch::create([
+            'user_id' => auth()->id(),
+            'type' => 'products',
+            'source_file_name' => $this->importFile->getClientOriginalName(),
+            'status' => 'processing',
+            'started_at' => now(),
+        ]);
+
         $header = array_shift($rows);
         $columns = array_map(fn ($value) => strtolower(trim((string) $value)), $header);
         $summary = [
@@ -118,89 +129,142 @@ class Index extends Component
         ];
         $seenSkus = [];
 
-        foreach ($rows as $row) {
-            $normalizedRow = array_slice(array_pad($row, count($columns), null), 0, count($columns));
-            $data = array_combine($columns, $normalizedRow);
-            $sku = trim((string) ($data['sku'] ?? ''));
-            $name = trim((string) ($data['name'] ?? ''));
-            $barcode = blank($data['barcode'] ?? null) ? null : trim((string) $data['barcode']);
+        try {
+            foreach ($rows as $index => $row) {
+                $rowNumber = $index + 2;
+                $normalizedRow = array_slice(array_pad($row, count($columns), null), 0, count($columns));
+                $data = array_combine($columns, $normalizedRow);
+                $sku = trim((string) ($data['sku'] ?? ''));
+                $name = trim((string) ($data['name'] ?? ''));
+                $barcode = blank($data['barcode'] ?? null) ? null : trim((string) $data['barcode']);
 
-            if (!$data || $sku === '' || $name === '') {
-                $summary['skipped']++;
-                $summary['skipped_invalid']++;
-                continue;
-            }
-
-            if (isset($seenSkus[$sku])) {
-                $summary['skipped']++;
-                $summary['skipped_duplicate_sku']++;
-                continue;
-            }
-
-            $seenSkus[$sku] = true;
-
-            $product = Product::firstOrNew(['sku' => $sku]);
-            $isNew = !$product->exists;
-            if ($barcode !== null) {
-                $barcodeConflict = Product::query()
-                    ->where('barcode', $barcode)
-                    ->when($product->exists, fn ($query) => $query->whereKeyNot($product->id))
-                    ->exists();
-
-                if ($barcodeConflict) {
+                if (!$data || $sku === '' || $name === '') {
                     $summary['skipped']++;
-                    $summary['skipped_barcode_conflict']++;
+                    $summary['skipped_invalid']++;
+                    $this->recordImportRow($batch, $rowNumber, $sku, $barcode, 'skipped', 'invalid_data', $data);
 
                     continue;
                 }
+
+                if (isset($seenSkus[$sku])) {
+                    $summary['skipped']++;
+                    $summary['skipped_duplicate_sku']++;
+                    $this->recordImportRow($batch, $rowNumber, $sku, $barcode, 'skipped', 'duplicate_sku_in_file', $data);
+
+                    continue;
+                }
+
+                $seenSkus[$sku] = true;
+
+                $product = Product::firstOrNew(['sku' => $sku]);
+                $isNew = !$product->exists;
+                if ($barcode !== null) {
+                    $barcodeConflict = Product::query()
+                        ->where('barcode', $barcode)
+                        ->when($product->exists, fn ($query) => $query->whereKeyNot($product->id))
+                        ->exists();
+
+                    if ($barcodeConflict) {
+                        $summary['skipped']++;
+                        $summary['skipped_barcode_conflict']++;
+                        $this->recordImportRow($batch, $rowNumber, $sku, $barcode, 'skipped', 'barcode_conflict', $data);
+
+                        continue;
+                    }
+                }
+
+                $product->sku = $sku;
+                $product->name = $name;
+                $product->barcode = $barcode;
+                if (!empty($data['unit_code'])) {
+                    $unit = Unit::where('code', $data['unit_code'])->first();
+                    $product->unit_id = $unit?->id ?? $product->unit_id;
+                }
+                if (!$product->unit_id) {
+                    $pcs = Unit::where('code', 'pcs')->first();
+                    $product->unit_id = $pcs?->id;
+                }
+                $product->description = $data['description'] ?? $product->description;
+                $product->avg_cost_local = isset($data['cost']) && $data['cost'] !== '' ? (float) $data['cost'] : $product->avg_cost_local;
+                $product->sale_price_local = isset($data['price']) && $data['price'] !== '' ? (float) $data['price'] : $product->sale_price_local;
+                $product->sale_margin_percent = isset($data['margin']) && $data['margin'] !== '' ? (float) $data['margin'] : $product->sale_margin_percent;
+                $product->reorder_level = isset($data['reorder_level']) && $data['reorder_level'] !== '' ? (float) $data['reorder_level'] : $product->reorder_level;
+                if (!$product->exists) {
+                    $product->avg_cost_local = isset($data['cost']) && $data['cost'] !== '' ? (float) $data['cost'] : 0;
+                    $product->sale_price_local = isset($data['price']) && $data['price'] !== '' ? (float) $data['price'] : 0;
+                    $product->sale_margin_percent = isset($data['margin']) && $data['margin'] !== '' ? (float) $data['margin'] : 0;
+                    $product->reorder_level = isset($data['reorder_level']) && $data['reorder_level'] !== '' ? (float) $data['reorder_level'] : 0;
+                }
+                $product->save();
+                $summary['processed']++;
+                $summary[$isNew ? 'created' : 'updated']++;
+
+                if (isset($data['stock']) && $data['stock'] !== '' && $this->import_location_id) {
+                    $stock = (float) $data['stock'];
+                    if ($stock > 0) {
+                        $stockService->recordMovement([
+                            'product_id' => $product->id,
+                            'from_location_id' => null,
+                            'to_location_id' => $this->import_location_id,
+                            'quantity' => $stock,
+                            'unit_cost_local' => (float) $product->avg_cost_local,
+                            'unit_sale_price_local' => (float) $product->sale_price_local,
+                            'type' => 'adjustment_in',
+                            'reference_type' => 'product_import',
+                            'reference_id' => null,
+                            'occurred_at' => now(),
+                            'note' => 'Import produits',
+                        ]);
+                    }
+                }
+
+                $this->recordImportRow(
+                    $batch,
+                    $rowNumber,
+                    $sku,
+                    $barcode,
+                    $isNew ? 'created' : 'updated',
+                    null,
+                    $data,
+                    $product->id,
+                    ['imported_stock' => isset($data['stock']) && $data['stock'] !== '' ? (float) $data['stock'] : 0]
+                );
             }
 
-            $product->sku = $sku;
-            $product->name = $name;
-            $product->barcode = $barcode;
-            if (!empty($data['unit_code'])) {
-                $unit = Unit::where('code', $data['unit_code'])->first();
-                $product->unit_id = $unit?->id ?? $product->unit_id;
-            }
-            if (!$product->unit_id) {
-                $pcs = Unit::where('code', 'pcs')->first();
-                $product->unit_id = $pcs?->id;
-            }
-            $product->description = $data['description'] ?? $product->description;
-            $product->avg_cost_local = isset($data['cost']) && $data['cost'] !== '' ? (float) $data['cost'] : $product->avg_cost_local;
-            $product->sale_price_local = isset($data['price']) && $data['price'] !== '' ? (float) $data['price'] : $product->sale_price_local;
-            $product->sale_margin_percent = isset($data['margin']) && $data['margin'] !== '' ? (float) $data['margin'] : $product->sale_margin_percent;
-            $product->reorder_level = isset($data['reorder_level']) && $data['reorder_level'] !== '' ? (float) $data['reorder_level'] : $product->reorder_level;
-            if (!$product->exists) {
-                $product->avg_cost_local = isset($data['cost']) && $data['cost'] !== '' ? (float) $data['cost'] : 0;
-                $product->sale_price_local = isset($data['price']) && $data['price'] !== '' ? (float) $data['price'] : 0;
-                $product->sale_margin_percent = isset($data['margin']) && $data['margin'] !== '' ? (float) $data['margin'] : 0;
-                $product->reorder_level = isset($data['reorder_level']) && $data['reorder_level'] !== '' ? (float) $data['reorder_level'] : 0;
-            }
-            $product->save();
-            $summary['processed']++;
-            $summary[$isNew ? 'created' : 'updated']++;
+            $batch->update([
+                'status' => 'completed',
+                'summary' => $summary,
+                'finished_at' => now(),
+            ]);
 
-            $stock = isset($data['stock']) && $data['stock'] !== '' ? (float) $data['stock'] : 0;
-            if ($stock > 0 && $this->import_location_id) {
-                $stockService->recordMovement([
-                    'product_id' => $product->id,
-                    'from_location_id' => null,
-                    'to_location_id' => $this->import_location_id,
-                    'quantity' => $stock,
-                    'unit_cost_local' => (float) $product->avg_cost_local,
-                    'unit_sale_price_local' => (float) $product->sale_price_local,
-                    'type' => 'adjustment_in',
-                    'reference_type' => 'product_import',
-                    'reference_id' => null,
-                    'occurred_at' => now(),
-                    'note' => 'Import produits',
-                ]);
-            }
+            ActivityLog::create([
+                'user_id' => auth()->id(),
+                'action' => 'imported',
+                'subject_type' => ImportBatch::class,
+                'subject_id' => $batch->id,
+                'description' => 'Import produits #' . $batch->id . ' terminé',
+                'meta' => [
+                    'source' => 'import',
+                    'type' => 'products',
+                    'file_name' => $batch->source_file_name,
+                    'summary' => $summary,
+                ],
+            ]);
+        } catch (\Throwable $exception) {
+            $batch->update([
+                'status' => 'failed',
+                'summary' => $summary,
+                'finished_at' => now(),
+            ]);
+
+            throw $exception;
         }
 
         $this->reset('importFile');
-        $this->importSummary = $summary;
+        $this->importSummary = [
+            ...$summary,
+            'batch_id' => $batch->id,
+        ];
     }
 
     protected function extractImportRows(): array
@@ -284,8 +348,38 @@ class Index extends Component
         $locations = LocationAccess::restrictLocations(StockLocation::query()->orderBy('name'))->get();
         $selectedLocation = $locations->firstWhere('id', $selectedLocationId);
         $canSelectAnyLocation = LocationAccess::hasGlobalAccess();
+        $recentImports = ImportBatch::query()
+            ->with(['user', 'rows'])
+            ->where('type', 'products')
+            ->latest('id')
+            ->limit(5)
+            ->get();
 
-        return view('livewire.products.index', compact('products', 'stats', 'locations', 'selectedLocation', 'canSelectAnyLocation'))
+        return view('livewire.products.index', compact('products', 'stats', 'locations', 'selectedLocation', 'canSelectAnyLocation', 'recentImports'))
             ->layout('layouts.app');
+    }
+
+    private function recordImportRow(
+        ImportBatch $batch,
+        int $rowNumber,
+        string $sku,
+        ?string $barcode,
+        string $action,
+        ?string $reason,
+        ?array $payload,
+        ?int $productId = null,
+        array $meta = []
+    ): void {
+        ImportBatchRow::create([
+            'import_batch_id' => $batch->id,
+            'row_number' => $rowNumber,
+            'sku' => $sku !== '' ? $sku : null,
+            'barcode' => $barcode,
+            'action' => $action,
+            'reason' => $reason,
+            'product_id' => $productId,
+            'payload' => $payload,
+            'meta' => $meta,
+        ]);
     }
 }

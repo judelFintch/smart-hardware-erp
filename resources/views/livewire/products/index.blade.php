@@ -49,6 +49,7 @@
                 <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
                     <div class="font-semibold">Import termine.</div>
                     <div class="mt-1">
+                        Lot #{{ $importSummary['batch_id'] ?? '—' }} :
                         {{ $importSummary['processed'] }} ligne(s) traitee(s),
                         {{ $importSummary['created'] }} article(s) cree(s),
                         {{ $importSummary['updated'] }} article(s) mis a jour,
@@ -64,6 +65,80 @@
                 </div>
             @endif
         </div>
+    </div>
+
+    <div class="rounded-[24px] border border-slate-200 bg-white p-4 shadow-sm">
+        <div class="flex items-center justify-between gap-3">
+            <div>
+                <div class="text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">Historique import</div>
+                <div class="mt-1 text-lg font-semibold text-slate-900">Derniers lots d'import produits</div>
+            </div>
+            <a href="{{ route('reports.activity') }}" class="btn btn-secondary" wire:navigate>Journal complet</a>
+        </div>
+
+        @if ($recentImports->isEmpty())
+            <div class="mt-4 rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-sm text-slate-500">
+                Aucun lot d'import enregistre pour le moment.
+            </div>
+        @else
+            <div class="mt-4 overflow-x-auto">
+                <table class="min-w-full">
+                    <thead class="bg-slate-50/80 text-left text-xs uppercase tracking-[0.16em] text-slate-500">
+                        <tr>
+                            <th class="px-4 py-3">Lot</th>
+                            <th class="px-4 py-3">Fichier</th>
+                            <th class="px-4 py-3">Statut</th>
+                            <th class="px-4 py-3">Auteur</th>
+                            <th class="px-4 py-3">Resume</th>
+                            <th class="px-4 py-3">Date</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @foreach ($recentImports as $batch)
+                            @php
+                                $summary = $batch->summary ?? [];
+                                $tone = match ($batch->status) {
+                                    'completed' => 'bg-emerald-100 text-emerald-700',
+                                    'failed' => 'bg-red-100 text-red-700',
+                                    default => 'bg-amber-100 text-amber-700',
+                                };
+                            @endphp
+                            <tr class="hover:bg-slate-50/70">
+                                <td class="px-4 py-4">
+                                    <div class="font-medium text-slate-900">#{{ $batch->id }}</div>
+                                    <div class="mt-1 text-xs text-slate-500">{{ number_format($batch->rows->count()) }} ligne(s) tracee(s)</div>
+                                </td>
+                                <td class="px-4 py-4 text-sm text-slate-600">{{ $batch->source_file_name }}</td>
+                                <td class="px-4 py-4">
+                                    <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium {{ $tone }}">{{ $batch->status }}</span>
+                                </td>
+                                <td class="px-4 py-4 text-sm text-slate-600">{{ $batch->user?->name ?? 'Systeme' }}</td>
+                                <td class="px-4 py-4 text-sm text-slate-600">
+                                    <div>{{ $summary['created'] ?? 0 }} cree(s), {{ $summary['updated'] ?? 0 }} mis a jour, {{ $summary['skipped'] ?? 0 }} ignore(s)</div>
+                                    @if (($summary['skipped'] ?? 0) > 0)
+                                        <div class="mt-1 text-xs text-slate-500">
+                                            SKU dupliques: {{ $summary['skipped_duplicate_sku'] ?? 0 }}.
+                                            Conflits barcode: {{ $summary['skipped_barcode_conflict'] ?? 0 }}.
+                                            Invalides: {{ $summary['skipped_invalid'] ?? 0 }}.
+                                        </div>
+                                    @endif
+                                </td>
+                                <td class="px-4 py-4 text-sm text-slate-600">
+                                    <div>{{ $batch->started_at?->format('d/m/Y H:i') ?? '—' }}</div>
+                                    <div class="mt-1 text-xs text-slate-500">
+                                        @if ($batch->finished_at)
+                                            Termine a {{ $batch->finished_at->format('H:i') }}
+                                        @else
+                                            En attente de fin
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </div>
 
     <div class="rounded-[24px] border border-slate-200 bg-white px-3 py-2.5 shadow-sm">

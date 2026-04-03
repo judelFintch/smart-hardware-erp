@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Livewire\Products\Form;
 use App\Livewire\Products\Index;
+use App\Models\ImportBatch;
 use App\Models\Product;
 use App\Models\Unit;
 use App\Models\User;
@@ -95,6 +96,28 @@ class ProductFormTest extends TestCase
             'sale_margin_percent' => 0,
             'reorder_level' => 5,
         ]);
+
+        $batch = ImportBatch::query()->latest('id')->first();
+
+        $this->assertNotNull($batch);
+        $this->assertSame('products', $batch->type);
+        $this->assertSame('completed', $batch->status);
+        $this->assertSame('products.csv', $batch->source_file_name);
+        $this->assertSame(1, $batch->rows()->count());
+
+        $this->assertDatabaseHas('import_batch_rows', [
+            'import_batch_id' => $batch->id,
+            'row_number' => 2,
+            'sku' => 'SKU-012',
+            'action' => 'created',
+            'reason' => null,
+        ]);
+
+        $this->assertDatabaseHas('activity_logs', [
+            'action' => 'imported',
+            'subject_type' => ImportBatch::class,
+            'subject_id' => $batch->id,
+        ]);
     }
 
     public function test_product_import_skips_duplicate_sku_rows_in_same_file(): void
@@ -134,6 +157,16 @@ class ProductFormTest extends TestCase
             'sku' => 'SKU-013',
             'name' => 'Produit A',
             'sale_price_local' => 100,
+        ]);
+
+        $batch = ImportBatch::query()->latest('id')->firstOrFail();
+
+        $this->assertDatabaseHas('import_batch_rows', [
+            'import_batch_id' => $batch->id,
+            'row_number' => 3,
+            'sku' => 'SKU-013',
+            'action' => 'skipped',
+            'reason' => 'duplicate_sku_in_file',
         ]);
     }
 
@@ -183,5 +216,16 @@ class ProductFormTest extends TestCase
             'sku' => 'SKU-015',
         ]);
         $this->assertDatabaseCount('products', 1);
+
+        $batch = ImportBatch::query()->latest('id')->firstOrFail();
+
+        $this->assertDatabaseHas('import_batch_rows', [
+            'import_batch_id' => $batch->id,
+            'row_number' => 2,
+            'sku' => 'SKU-015',
+            'barcode' => 'BAR-001',
+            'action' => 'skipped',
+            'reason' => 'barcode_conflict',
+        ]);
     }
 }

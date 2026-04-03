@@ -61,6 +61,14 @@
                                 <td class="px-4 py-4 font-medium text-slate-900">{{ $log->subject_id }}</td>
                                 <td class="px-4 py-4 text-sm text-slate-600">
                                     <div class="font-medium text-slate-900">{{ $log->description ?: 'Sans description' }}</div>
+                                    @if (($log->meta['source'] ?? null) === 'import')
+                                        <div class="mt-1 text-xs text-slate-500">
+                                            Fichier: {{ $log->meta['file_name'] ?? '—' }}
+                                            · Crees: {{ $log->meta['summary']['created'] ?? 0 }}
+                                            · Mises a jour: {{ $log->meta['summary']['updated'] ?? 0 }}
+                                            · Ignorees: {{ $log->meta['summary']['skipped'] ?? 0 }}
+                                        </div>
+                                    @endif
                                     @if (!empty($log->meta['changes']))
                                         <div class="mt-1 space-y-1 text-xs text-slate-500">
                                             @foreach (collect($log->meta['changes'])->take(4) as $field => $change)
