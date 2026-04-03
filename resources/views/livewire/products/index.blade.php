@@ -10,18 +10,59 @@
             </div>
             <div class="flex flex-wrap gap-2 items-center">
                 <form wire:submit.prevent="importCsv" class="flex flex-wrap gap-2 items-center">
-                    <select wire:model="import_location_id" class="input" @disabled(!$canSelectAnyLocation)>
+                    <select wire:model="import_location_id" class="input" @disabled(!$canSelectAnyLocation) wire:loading.attr="disabled" wire:target="importCsv,importFile">
                         <option value="">Entité du stock</option>
                         @foreach ($locations as $location)
                             <option value="{{ $location->id }}">{{ $location->name }} ({{ $location->code }})</option>
                         @endforeach
                     </select>
-                    <input type="file" wire:model="importFile" class="input">
-                    <button type="submit" class="btn btn-secondary">Importer fichier</button>
+                    <input type="file" wire:model="importFile" class="input" wire:loading.attr="disabled" wire:target="importCsv,importFile">
+                    <button type="submit" class="btn btn-secondary" wire:loading.attr="disabled" wire:target="importCsv,importFile">
+                        <span wire:loading.remove wire:target="importCsv,importFile">Importer fichier</span>
+                        <span wire:loading wire:target="importFile">Chargement du fichier...</span>
+                        <span wire:loading wire:target="importCsv">Importation en cours...</span>
+                    </button>
                 </form>
                 <button type="button" wire:click="downloadImportTemplate" class="btn btn-secondary">Modèle Excel</button>
                 <a href="{{ route('products.create') }}" class="btn btn-primary" wire:navigate>Nouveau</a>
             </div>
+        </div>
+        <div class="mt-4 space-y-2">
+            <div wire:loading.flex wire:target="importCsv" class="items-center gap-3 rounded-2xl border border-cyan-200 bg-cyan-50 px-4 py-3 text-sm text-cyan-800">
+                <span class="inline-block h-3 w-3 animate-pulse rounded-full bg-cyan-500"></span>
+                <span class="font-medium">Importation en cours.</span>
+                <span class="text-cyan-700">Le fichier est en train d'etre traite. Patientez jusqu'au resume.</span>
+            </div>
+
+            <div wire:loading.flex wire:target="importFile" class="items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                <span class="inline-block h-3 w-3 animate-pulse rounded-full bg-amber-500"></span>
+                <span class="font-medium">Fichier en cours de chargement.</span>
+            </div>
+
+            @error('importFile')
+                <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {{ $message }}
+                </div>
+            @enderror
+
+            @if ($importSummary)
+                <div class="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+                    <div class="font-semibold">Import termine.</div>
+                    <div class="mt-1">
+                        {{ $importSummary['processed'] }} ligne(s) traitee(s),
+                        {{ $importSummary['created'] }} article(s) cree(s),
+                        {{ $importSummary['updated'] }} article(s) mis a jour,
+                        {{ $importSummary['skipped'] }} ligne(s) ignoree(s).
+                    </div>
+                    @if (($importSummary['skipped'] ?? 0) > 0)
+                        <div class="mt-2 text-xs text-emerald-900/80">
+                            Doublons SKU dans le fichier: {{ $importSummary['skipped_duplicate_sku'] ?? 0 }}.
+                            Conflits code-barres: {{ $importSummary['skipped_barcode_conflict'] ?? 0 }}.
+                            Lignes invalides: {{ $importSummary['skipped_invalid'] ?? 0 }}.
+                        </div>
+                    @endif
+                </div>
+            @endif
         </div>
     </div>
 

@@ -24,6 +24,7 @@ class Index extends Component
     public string $search = '';
     public ?int $location_id = null;
     public ?int $import_location_id = null;
+    public ?array $importSummary = null;
     public int $perPage = 15;
     public string $sortField = 'name';
     public string $sortDirection = 'asc';
@@ -87,6 +88,9 @@ class Index extends Component
 
     public function importCsv(StockService $stockService): void
     {
+        $this->resetErrorBag('importFile');
+        $this->importSummary = null;
+
         $this->validate([
             'importFile' => ['required', 'file', 'mimes:csv,txt,xls,xlsx', 'max:5120'],
             'import_location_id' => ['nullable', 'exists:stock_locations,id'],
@@ -103,17 +107,57 @@ class Index extends Component
 
         $header = array_shift($rows);
         $columns = array_map(fn ($value) => strtolower(trim((string) $value)), $header);
+        $summary = [
+            'processed' => 0,
+            'created' => 0,
+            'updated' => 0,
+            'skipped' => 0,
+            'skipped_duplicate_sku' => 0,
+            'skipped_barcode_conflict' => 0,
+            'skipped_invalid' => 0,
+        ];
+        $seenSkus = [];
 
         foreach ($rows as $row) {
             $normalizedRow = array_slice(array_pad($row, count($columns), null), 0, count($columns));
             $data = array_combine($columns, $normalizedRow);
-            if (!$data || empty($data['sku']) || empty($data['name'])) {
+            $sku = trim((string) ($data['sku'] ?? ''));
+            $name = trim((string) ($data['name'] ?? ''));
+            $barcode = blank($data['barcode'] ?? null) ? null : trim((string) $data['barcode']);
+
+            if (!$data || $sku === '' || $name === '') {
+                $summary['skipped']++;
+                $summary['skipped_invalid']++;
                 continue;
             }
 
-            $product = Product::firstOrNew(['sku' => $data['sku']]);
-            $product->name = $data['name'];
-            $product->barcode = blank($data['barcode'] ?? null) ? null : trim((string) $data['barcode']);
+            if (isset($seenSkus[$sku])) {
+                $summary['skipped']++;
+                $summary['skipped_duplicate_sku']++;
+                continue;
+            }
+
+            $seenSkus[$sku] = true;
+
+            $product = Product::firstOrNew(['sku' => $sku]);
+            $isNew = !$product->exists;
+            if ($barcode !== null) {
+                $barcodeConflict = Product::query()
+                    ->where('barcode', $barcode)
+                    ->when($product->exists, fn ($query) => $query->whereKeyNot($product->id))
+                    ->exists();
+
+                if ($barcodeConflict) {
+                    $summary['skipped']++;
+                    $summary['skipped_barcode_conflict']++;
+
+                    continue;
+                }
+            }
+
+            $product->sku = $sku;
+            $product->name = $name;
+            $product->barcode = $barcode;
             if (!empty($data['unit_code'])) {
                 $unit = Unit::where('code', $data['unit_code'])->first();
                 $product->unit_id = $unit?->id ?? $product->unit_id;
@@ -125,13 +169,17 @@ class Index extends Component
             $product->description = $data['description'] ?? $product->description;
             $product->avg_cost_local = isset($data['cost']) && $data['cost'] !== '' ? (float) $data['cost'] : $product->avg_cost_local;
             $product->sale_price_local = isset($data['price']) && $data['price'] !== '' ? (float) $data['price'] : $product->sale_price_local;
-            $product->sale_margin_percent = isset($data['margin']) ? (float) $data['margin'] : $product->sale_margin_percent;
-            $product->reorder_level = isset($data['reorder_level']) ? (float) $data['reorder_level'] : $product->reorder_level;
+            $product->sale_margin_percent = isset($data['margin']) && $data['margin'] !== '' ? (float) $data['margin'] : $product->sale_margin_percent;
+            $product->reorder_level = isset($data['reorder_level']) && $data['reorder_level'] !== '' ? (float) $data['reorder_level'] : $product->reorder_level;
             if (!$product->exists) {
                 $product->avg_cost_local = isset($data['cost']) && $data['cost'] !== '' ? (float) $data['cost'] : 0;
                 $product->sale_price_local = isset($data['price']) && $data['price'] !== '' ? (float) $data['price'] : 0;
+                $product->sale_margin_percent = isset($data['margin']) && $data['margin'] !== '' ? (float) $data['margin'] : 0;
+                $product->reorder_level = isset($data['reorder_level']) && $data['reorder_level'] !== '' ? (float) $data['reorder_level'] : 0;
             }
             $product->save();
+            $summary['processed']++;
+            $summary[$isNew ? 'created' : 'updated']++;
 
             $stock = isset($data['stock']) && $data['stock'] !== '' ? (float) $data['stock'] : 0;
             if ($stock > 0 && $this->import_location_id) {
@@ -152,6 +200,7 @@ class Index extends Component
         }
 
         $this->reset('importFile');
+        $this->importSummary = $summary;
     }
 
     protected function extractImportRows(): array

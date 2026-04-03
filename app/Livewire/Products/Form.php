@@ -52,6 +52,8 @@ class Form extends Component
 
         $data['barcode'] = blank($data['barcode'] ?? null) ? null : trim((string) $data['barcode']);
         $data['sale_price_local'] = (float) ($data['sale_price_local'] ?? 0);
+        $data['sale_margin_percent'] = (float) ($data['sale_margin_percent'] ?? 0);
+        $data['reorder_level'] = (float) ($data['reorder_level'] ?? 0);
 
         if ($this->product) {
             if ($data['sale_price_local'] <= 0 && $this->product->avg_cost_local > 0) {
